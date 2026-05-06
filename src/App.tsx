@@ -6,7 +6,13 @@ function App() {
 
   return (
     <>
-      <StoreFront></StoreFront> 
+      <div className="flex flex-col">
+        <div className="navbar justify-between">
+          <div className="btn btn-ghost text-xl">Detonate Fundraising</div>
+          <button className="btn ">Admin</button>
+        </div>
+        <StoreFront /> 
+      </div>
     </>
   )
 }
