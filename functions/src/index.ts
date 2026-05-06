@@ -1,12 +1,18 @@
+/**
+ * Import function triggers from their respective submodules:
+ *
+ * import {onCall} from "firebase-functions/v2/https";
+ * import {onDocumentWritten} from "firebase-functions/v2/firestore";
+ *
+ * See a full list of supported triggers at https://firebase.google.com/docs/functions
+ */
+
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
 
 // For retrieving and returning data from the Firestore
 import {setGlobalOptions} from "firebase-functions";
-import {onRequest} from "firebase-functions/https";
-import * as logger from "firebase-functions/logger";
-import { getFirestore, collection, setDoc, getDoc } from "firebase/firestore"
+import { getFirestore } from "firebase/firestore"
 
 // Import firebase config from env file
 
@@ -24,8 +30,4 @@ const firebaseConfig = {
 setGlobalOptions({ maxInstances: 10 });
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-
-
-
+export const db = getFirestore(app);

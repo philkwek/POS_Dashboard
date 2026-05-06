@@ -1,17 +1,21 @@
 import '../App.css'
+import { StoreItemType } from '@pos-dashboard/shared';
 
-function StoreItem({item}) {
+interface StoreItemProp {
+    item: StoreItemType;
+}
 
+function StoreItem({item}: StoreItemProp) {
 
   return (
     <>
       <div className="card bg-base-100 shadow-sm">
         <figure>
-            <img src="https://picsum.photos/600/800/" />
+            <img src={item.imageURL} />
         </figure>
         <div className="card-body">
-            <h2 className="card-title">Test Product Item</h2>
-            <p>Item description</p>
+            <h2 className="card-title">{item.name}</h2>
+            <p>{item.description}</p>
         </div>
       </div>
     </>
