@@ -1,19 +1,16 @@
 import { useState } from 'react'
 import StoreFront from './pages/StoreFront';
 import './App.css'
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App() {
 
   return (
-    <>
-      <div className="flex flex-col">
-        <div className="navbar justify-between">
-          <div className="btn btn-ghost text-xl">Detonate Fundraising</div>
-          <button className="btn ">Admin</button>
-        </div>
-        <StoreFront /> 
-      </div>
-    </>
+    <Router>
+      <Routes>
+       <Route path="/" element={<StoreFront/>} /> 
+      </Routes>
+    </Router>
   )
 }
 
