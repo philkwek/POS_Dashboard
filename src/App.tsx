@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import StoreFront from './StoreFront';
+import StoreFront from './pages/StoreFront';
 import './App.css'
 
 function App() {

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { collection, getDocs } from 'firebase/firestore'
-import { db } from './firebase'
+import { db } from '../firebase'
 import { StoreItemType } from '@pos-dashboard/shared'
 import './App.css'
-import StoreItem from './components/StoreItem'
+import StoreItem from '../components/StoreItem'
 
 function StoreFront() {
   const [products, setProducts] = useState<StoreItemType[]>([])
