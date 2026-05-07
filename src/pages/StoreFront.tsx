@@ -9,7 +9,13 @@ import Login from '../pages/Login';
 import { Link } from "react-router-dom";
 
 
-function StoreFront() {
+interface StoreFrontProps {
+  setEmail: (email: string) => void;
+  setPassword: (password: string) => void;
+  handleSignIn: () => void;
+}
+
+function StoreFront({ setEmail, setPassword, handleSignIn }: StoreFrontProps) {
   const [products, setProducts] = useState<StoreItemType[]>([])
   const [loading, setLoading] = useState(true)
   const [login, setLogin] = useState(false);
@@ -45,7 +51,14 @@ function StoreFront() {
         ? <div>Loading products...</div>
         : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-4">
             {products.map((product, index) => (<StoreItem key={index} item={product} />))}</div>}
-      {login && <Login adminLoginOnClick={adminLoginOnClick} />}
+      {login && (
+        <Login 
+          adminLoginOnClick={adminLoginOnClick} 
+          setEmail={setEmail} 
+          setPassword={setPassword} 
+          handleSignIn={handleSignIn} 
+        />
+      )}
     </div>
   )
 }
