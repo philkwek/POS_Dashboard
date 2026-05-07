@@ -9,25 +9,29 @@ import Login from '../pages/Login';
 import { Link } from "react-router-dom";
 
 
-interface StoreFrontProps {
-  setEmail: (email: string) => void;
-  setPassword: (password: string) => void;
-  handleSignIn: () => void;
-}
-
-function StoreFront({ setEmail, setPassword, handleSignIn }: StoreFrontProps) {
+/**
+ * StoreFront Component: The main customer-facing landing page.
+ * Displays a grid of products fetched from Firestore.
+ */
+function StoreFront() {
+  // State for storing the list of products from the database
   const [products, setProducts] = useState<StoreItemType[]>([])
+  // State to track if the data is still being loaded
   const [loading, setLoading] = useState(true)
-  const [login, setLogin] = useState(false);
+  // State to toggle the visibility of the admin login modal
+  const [loginVisible, setLoginVisible] = useState(false);
 
+  // Toggles the login modal visibility
   const adminLoginOnClick = () => {
-    setLogin(!login);
+    setLoginVisible(!loginVisible);
   }
 
+  // Fetch products from Firestore on component mount
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, 'products'))
+        // Map Firestore documents to our shared StoreItemType
         const productsData = querySnapshot.docs.map(doc => ({
           ...doc.data()
         } as StoreItemType))
@@ -43,20 +47,23 @@ function StoreFront({ setEmail, setPassword, handleSignIn }: StoreFrontProps) {
 
   return (
     <div className="flex flex-col relative">
+      {/* Navigation Header */}
       <div className="navbar justify-between">
         <div className="btn btn-ghost text-xl">Detonate Fundraising</div>
         <button className="btn" onClick={adminLoginOnClick}>Admin</button>
       </div>
+
+      {/* Main Product Grid */}
       {loading 
-        ? <div>Loading products...</div>
+        ? <div className="p-10 text-center">Loading products...</div>
         : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-4">
-            {products.map((product, index) => (<StoreItem key={index} item={product} />))}</div>}
-      {login && (
+            {products.map((product, index) => (<StoreItem key={index} item={product} />))}
+          </div>}
+
+      {/* Conditional Login Overlay */}
+      {loginVisible && (
         <Login 
           adminLoginOnClick={adminLoginOnClick} 
-          setEmail={setEmail} 
-          setPassword={setPassword} 
-          handleSignIn={handleSignIn} 
         />
       )}
     </div>
