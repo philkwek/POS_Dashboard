@@ -6,11 +6,13 @@ import './App.css'
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<StoreFront />} /> 
-        </Routes>
-      </Router>
+      <div className="text-sm sm:text-base md:text-lg">
+        <Router>
+          <Routes>
+            <Route path="/" element={<StoreFront />} /> 
+          </Routes>
+        </Router>
+      </div>
     </AuthProvider>
   )
 }

@@ -9,7 +9,7 @@ function StoreItem({item}: StoreItemProp) {
 
   return (
     <>
-      <div className="card bg-base-100 m-2 shadow-sm">
+      <div className="card bg-base-100 shadow-sm">
         <figure>
             <img src={item.imageURL} />
         </figure>
