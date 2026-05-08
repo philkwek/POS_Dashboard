@@ -46,7 +46,7 @@ function StoreFront() {
   }, [])
 
   return (
-    <div className="flex flex-col relative">
+    <div className="flex flex-col m-4 relative">
       {/* Navigation Header */}
       <div className="navbar justify-between">
         <div className="btn btn-ghost text-xl">Detonate Fundraising</div>

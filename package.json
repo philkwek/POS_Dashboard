@@ -12,7 +12,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "emulators": "firebase emulators:start --only auth,functions,firestore,database,ui --import ./emulator_data --export-on-exit",
+    "emulators": "firebase emulators:start --only auth,functions,firestore,database,storage,ui --import ./emulator_data --export-on-exit",
     "db:sync": "node scripts/sync-live-to-emulator.cjs"
   },
   "dependencies": {
