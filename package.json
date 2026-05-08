@@ -3,16 +3,27 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "workspaces": [
+    "functions",
+    "shared"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "emulators": "firebase emulators:start --only auth,functions,firestore,database,storage,ui --import ./emulator_data --export-on-exit",
+    "db:sync": "node scripts/sync-live-to-emulator.cjs"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.2.4",
+    "daisyui": "^5.5.19",
     "firebase": "^12.12.1",
+    "firebase-admin": "^13.8.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.15.0",
+    "tailwindcss": "^4.2.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
