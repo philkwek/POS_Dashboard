@@ -29,7 +29,7 @@ function Login({ adminLoginOnClick }: LoginProps) {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center absolute backdrop-blur-xs z-50">
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-xs z-50">
             {/* Login Form Card */}
             <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
                 <div className="flex flex-row justify-between">

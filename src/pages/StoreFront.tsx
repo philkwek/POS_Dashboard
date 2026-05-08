@@ -7,6 +7,8 @@ import '../App.css'
 import StoreItem from '../components/StoreItem'
 import Login from '../pages/Login';
 import Navbar from '../components/Navbar';
+import Dock from '../components/Dock';
+import { useAuth } from '../context/AuthContext';
 
 
 /**
@@ -20,6 +22,8 @@ function StoreFront() {
   const [loading, setLoading] = useState(true)
   // State to toggle the visibility of the admin login modal
   const [loginVisible, setLoginVisible] = useState(false);
+  // State to toggle Admin NavBar
+const { user } = useAuth();
 
   // Toggles the login modal visibility
   const adminLoginOnClick = () => {
@@ -65,8 +69,11 @@ function StoreFront() {
       )}
 
       {/* Footer Navigation for Admin */}
+      {user !== null && (<Dock />)}
     </div>
   )
 }
 
 export default StoreFront
+
+
