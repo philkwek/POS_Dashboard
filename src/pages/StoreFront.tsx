@@ -6,8 +6,7 @@ import '../App.css'
 
 import StoreItem from '../components/StoreItem'
 import Login from '../pages/Login';
-import { useAuth } from '../context/AuthContext';
-import { Link } from "react-router-dom";
+import Navbar from '../components/Navbar';
 
 
 /**
@@ -21,8 +20,6 @@ function StoreFront() {
   const [loading, setLoading] = useState(true)
   // State to toggle the visibility of the admin login modal
   const [loginVisible, setLoginVisible] = useState(false);
-  // Login status state
-  const { user } = useAuth();
 
   // Toggles the login modal visibility
   const adminLoginOnClick = () => {
@@ -51,12 +48,7 @@ function StoreFront() {
   return (
     <div className="flex flex-col m-4 relative">
       {/* Navigation Header */}
-      <div className="navbar justify-between flex flex-col gap-2 sm:flex-row">
-        <div className="btn btn-ghost text-xl">Detonate Fundraising</div>
-        { user == null 
-          ? <button className="btn" onClick={adminLoginOnClick}>Admin</button> 
-          : <button className="btn">Admin: {user.displayName}</button>}
-      </div>
+      <Navbar onAdminLoginClick={adminLoginOnClick} />
 
       {/* Main Product Grid */}
       {loading 
@@ -71,6 +63,8 @@ function StoreFront() {
           adminLoginOnClick={adminLoginOnClick} 
         />
       )}
+
+      {/* Footer Navigation for Admin */}
     </div>
   )
 }
