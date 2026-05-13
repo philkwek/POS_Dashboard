@@ -5,8 +5,6 @@ import { db } from "../firebase";
 import { StoreItemType } from "@pos-dashboard/shared";
 import "../App.css";
 
-import DrawerLayout from "../components/DrawerLayout";
-
 /**
  * StoreItemPage Component: Displays detailed information for a single product.
  * Handles both direct URL access and in-memory state passing.
@@ -50,33 +48,31 @@ function StoreItemPage() {
   }, [productId, product]);
 
   return (
-    <DrawerLayout>
-      <div className="flex flex-col relative">
-        <div className="m-4">
-          <button className="btn btn-outline mb-4" onClick={() => navigate("/")}>
-            ← Back to Store
-          </button>
+    <div className="flex flex-col relative">
+      <div className="m-4">
+        <button className="btn btn-outline mb-4" onClick={() => navigate("/")}>
+          ← Back to Store
+        </button>
 
-          {loading ? (
-            <div className="p-10 text-center">Loading product...</div>
-          ) : product ? (
-            <div className="max-w-2xl mx-auto">
-              <div className="card bg-base-100 shadow-sm">
-                <figure>
-                  <img src={product.imageURL} />
-                </figure>
-                <div className="card-body">
-                  <h2 className="card-title">{product.name}</h2>
-                  <p>{product.description}</p>
-                </div>
+        {loading ? (
+          <div className="p-10 text-center">Loading product...</div>
+        ) : product ? (
+          <div className="max-w-2xl mx-auto">
+            <div className="card bg-base-100 shadow-sm">
+              <figure>
+                <img src={product.imageURL} />
+              </figure>
+              <div className="card-body">
+                <h2 className="card-title">{product.name}</h2>
+                <p>{product.description}</p>
               </div>
             </div>
-          ) : (
-            <div className="p-10 text-center text-error">Product not found.</div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="p-10 text-center text-error">Product not found.</div>
+        )}
       </div>
-    </DrawerLayout>
+    </div>
   );
 }
 

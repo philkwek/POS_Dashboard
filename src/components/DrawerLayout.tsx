@@ -30,6 +30,15 @@ const DrawerLayout: React.FC<DrawerLayoutProps> = ({ children }) => {
     }
   };
 
+  const onSidebarLinkClick = (path: string) => {
+    navigate(path);
+    // Only auto-close on 'md' screens or smaller (< 768px)
+    if (window.innerWidth < 768) {
+      const drawer = document.getElementById("my-drawer") as HTMLInputElement;
+      if (drawer) drawer.checked = false;
+    }
+  };
+
   const sidebarLinks = [
     {
       name: "Store",
@@ -126,7 +135,7 @@ const DrawerLayout: React.FC<DrawerLayoutProps> = ({ children }) => {
   ];
 
   return (
-    <div className="drawer lg:drawer-open">
+    <div className="drawer md:drawer-open">
       <input id="my-drawer" type="checkbox" className="drawer-toggle" />
       <div className="drawer-content flex flex-col">
         {/* Navbar */}
@@ -190,13 +199,7 @@ const DrawerLayout: React.FC<DrawerLayoutProps> = ({ children }) => {
               {sidebarLinks.map((link) => (
                 <li key={link.name}>
                   <button
-                    onClick={() => {
-                      navigate(link.path);
-                      const drawer = document.getElementById(
-                        "my-drawer",
-                      ) as HTMLInputElement;
-                      if (drawer) drawer.checked = false;
-                    }}
+                    onClick={() => onSidebarLinkClick(link.path)}
                     className="is-drawer-close:tooltip is-drawer-close:tooltip-right"
                     data-tip={link.name}
                   >
