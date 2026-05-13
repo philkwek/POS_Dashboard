@@ -6,10 +6,7 @@ import { StoreItemType } from "@pos-dashboard/shared";
 import "../App.css";
 
 import StoreItem from "../components/StoreItem";
-import Login from "../pages/Login";
-import Navbar from "../components/Navbar";
-import Dock from "../components/Dock";
-import { useAuth } from "../context/AuthContext";
+import DrawerLayout from "../components/DrawerLayout";
 
 /**
  * StoreFront Component: The main customer-facing landing page.
@@ -20,17 +17,8 @@ function StoreFront() {
   const [products, setProducts] = useState<StoreItemType[]>([]);
   // State to track if the data is still being loaded
   const [loading, setLoading] = useState(true);
-  // State to toggle the visibility of the admin login modal
-  const [loginVisible, setLoginVisible] = useState(false);
-  // State to toggle Admin NavBar
-  const { user } = useAuth();
   
   const navigate = useNavigate();
-
-  // Toggles the login modal visibility
-  const adminLoginOnClick = () => {
-    setLoginVisible(!loginVisible);
-  };
 
   // Opens specific product page
   const storeItemOnClick = (item: StoreItemType) => {
@@ -61,31 +49,24 @@ function StoreFront() {
   }, []);
 
   return (
-    <div className="flex flex-col m-4 relative">
-      {/* Navigation Header */}
-      <Navbar onAdminLoginClick={adminLoginOnClick} />
-
-      {/* Main Product Grid */}
-      {loading ? (
-        <div className="p-10 text-center">Loading products...</div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-4">
-          {products.map((product) => (
-            <StoreItem
-              key={product.id}
-              item={product}
-              storeItemOnClick={() => storeItemOnClick(product)}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Conditional Login Overlay */}
-      {loginVisible && <Login adminLoginOnClick={adminLoginOnClick} />}
-
-      {/* Footer Navigation for Admin */}
-      {user !== null && <Dock />}
-    </div>
+    <DrawerLayout>
+      <div className="flex flex-col relative m-4">
+        {/* Main Product Grid */}
+        {loading ? (
+          <div className="p-10 text-center">Loading products...</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {products.map((product) => (
+              <StoreItem
+                key={product.id}
+                item={product}
+                storeItemOnClick={() => storeItemOnClick(product)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </DrawerLayout>
   );
 }
 

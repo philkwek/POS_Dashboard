@@ -1,38 +1,59 @@
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import Login from "../pages/Login";
 
-/**
- * Navbar component: Displays the application header and admin login/status.
- * @param onAdminLoginClick - Callback to trigger the login modal.
- */
+interface DrawerLayoutProps {
+  children: React.ReactNode;
+}
 
-const Dock = () => {
-
+const DrawerLayout: React.FC<DrawerLayoutProps> = ({ children }) => {
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [loginVisible, setLoginVisible] = useState(false);
+  const [isLogout, setIsLogout] = useState(false);
 
-  const storeBtnOnClick = () => {
-    navigate("/");
-  }
+  const onAdminLoginClick = () => {
+    setLoginVisible(!loginVisible);
+  };
 
-  return (
-    <div className="dock dock-sm">
-      <button onClick={storeBtnOnClick}>
+  const onLogoutButtonClick = () => {
+    setIsLogout(!isLogout);
+  };
+
+  const onConfirmLogoutClick = async () => {
+    try {
+      await logout();
+      setIsLogout(false);
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
+  const sidebarLinks = [
+    {
+      name: "Store",
+      path: "/",
+      icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           fill="currentColor"
-          className="size-6"
+          className="my-1.5 inline-block size-6"
         >
           <path d="M2.25 2.25a.75.75 0 0 0 0 1.5h1.386c.17 0 .318.114.362.278l2.558 9.592a3.752 3.752 0 0 0-2.806 3.63c0 .414.336.75.75.75h15.75a.75.75 0 0 0 0-1.5H5.378A2.25 2.25 0 0 1 7.5 15h11.218a.75.75 0 0 0 .674-.421 60.358 60.358 0 0 0 2.96-7.228.75.75 0 0 0-.525-.965A60.864 60.864 0 0 0 5.68 4.509l-.232-.867A1.875 1.875 0 0 0 3.636 2.25H2.25ZM3.75 20.25a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM16.5 20.25a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Z" />
         </svg>
-        <span className="dock-label">Store</span>
-      </button>
-
-      <button className="">
+      ),
+    },
+    {
+      name: "Finance",
+      path: "/finance",
+      icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           fill="currentColor"
-          className="size-6"
+          className="my-1.5 inline-block size-6"
         >
           <path
             fillRule="evenodd"
@@ -41,32 +62,34 @@ const Dock = () => {
           />
           <path d="M14.25 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 16.5 7.5h-1.875a.375.375 0 0 1-.375-.375V5.25Z" />
         </svg>
-
-        <span className="dock-label">Finance</span>
-      </button>
-
-      <button>
+      ),
+    },
+    {
+      name: "Inventory",
+      path: "/inventory",
+      icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           fill="currentColor"
-          className="size-6"
+          className="my-1.5 inline-block size-6"
         >
           <path d="M21 6.375c0 2.692-4.03 4.875-9 4.875S3 9.067 3 6.375 7.03 1.5 12 1.5s9 2.183 9 4.875Z" />
           <path d="M12 12.75c2.685 0 5.19-.586 7.078-1.609a8.283 8.283 0 0 0 1.897-1.384c.016.121.025.244.025.368C21 12.817 16.97 15 12 15s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.285 8.285 0 0 0 1.897 1.384C6.809 12.164 9.315 12.75 12 12.75Z" />
           <path d="M12 16.5c2.685 0 5.19-.586 7.078-1.609a8.282 8.282 0 0 0 1.897-1.384c.016.121.025.244.025.368 0 2.692-4.03 4.875-9 4.875s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.284 8.284 0 0 0 1.897 1.384C6.809 15.914 9.315 16.5 12 16.5Z" />
           <path d="M12 20.25c2.685 0 5.19-.586 7.078-1.609a8.282 8.282 0 0 0 1.897-1.384c.016.121.025.244.025.368 0 2.692-4.03 4.875-9 4.875s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.284 8.284 0 0 0 1.897 1.384C6.809 19.664 9.315 20.25 12 20.25Z" />
         </svg>
-
-        <span className="dock-label">Inventory</span>
-      </button>
-
-      <button>
+      ),
+    },
+    {
+      name: "POS",
+      path: "/pos",
+      icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           fill="currentColor"
-          className="size-6"
+          className="my-1.5 inline-block size-6"
         >
           <path
             fillRule="evenodd"
@@ -74,16 +97,17 @@ const Dock = () => {
             clipRule="evenodd"
           />
         </svg>
-
-        <span className="dock-label">POS</span>
-      </button>
-
-      <button>
+      ),
+    },
+    {
+      name: "Admin",
+      path: "/admin",
+      icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           fill="currentColor"
-          className="size-6"
+          className="my-1.5 inline-block size-6"
         >
           <path
             fillRule="evenodd"
@@ -97,11 +121,116 @@ const Dock = () => {
             clipRule="evenodd"
           />
         </svg>
+      ),
+    },
+  ];
 
-        <span className="dock-label">Admin</span>
-      </button>
+  return (
+    <div className="drawer lg:drawer-open">
+      <input id="my-drawer" type="checkbox" className="drawer-toggle" />
+      <div className="drawer-content flex flex-col">
+        {/* Navbar */}
+        <nav className="navbar sticky top-0 z-50 p-2 backdrop-blur-xl w-full h-fit justify-between flex flex-col sm:flex-row">
+          <div className="flex h-fit w-full items-center flex-row justify-spaced">
+            <div className="flex-none">
+              {user !== null && (
+                <label
+                  htmlFor="my-drawer"
+                  aria-label="open sidebar"
+                  className="btn btn-square btn-ghost"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    strokeWidth="2"
+                    fill="none"
+                    stroke="currentColor"
+                    className="my-1.5 inline-block size-6"
+                  >
+                    <path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"></path>
+                    <path d="M9 4v16"></path>
+                    <path d="M14 10l2 2l-2 2"></path>
+                  </svg>
+                </label>
+              )}
+            </div>
+            <button
+              className="btn btn-ghost text-xl grow"
+              onClick={() => navigate("/")}
+            >
+              🚀 Detonate Fundraising 🚀
+            </button>
+          </div>
+          {user == null ? (
+            <button className="btn btn-ghost" onClick={onAdminLoginClick}>
+              Admin
+            </button>
+          ) : (
+            <button className="btn btn-ghost" onClick={onLogoutButtonClick}>
+              Admin: {user.displayName || user.email}
+            </button>
+          )}
+        </nav>
+        {/* Page content here */}
+        <main className="flex-1">{children}</main>
+      </div>
+
+      {/* Sidebar */}
+      {user !== null && (
+        <div className="drawer-side is-drawer-close:overflow-visible z-50">
+          <label
+            htmlFor="my-drawer"
+            aria-label="close sidebar"
+            className="drawer-overlay"
+          ></label>
+          <div className="flex min-h-full flex-col items-start bg-base-200 is-drawer-close:w-16 is-drawer-open:w-38">
+            <ul className="menu w-full grow">
+              {sidebarLinks.map((link) => (
+                <li key={link.name}>
+                  <button
+                    onClick={() => {
+                      navigate(link.path);
+                      const drawer = document.getElementById(
+                        "my-drawer",
+                      ) as HTMLInputElement;
+                      if (drawer) drawer.checked = false;
+                    }}
+                    className="is-drawer-close:tooltip is-drawer-close:tooltip-right"
+                    data-tip={link.name}
+                  >
+                    {link.icon}
+                    <span className="is-drawer-close:hidden">{link.name}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* Login Overlay */}
+      {loginVisible && <Login adminLoginOnClick={onAdminLoginClick} />}
+
+      {/* Logout Confirmation Modal */}
+      {isLogout && (
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-xs z-50">
+          <div className="card bg-base-100 p-7 flex flex-col gap-5 border border-base-300 shadow-xl">
+            <h1 className="text-center">Confirm Logout?</h1>
+            <div className="flex flex-row gap-4">
+              <button className="btn btn-error" onClick={onConfirmLogoutClick}>
+                Logout
+              </button>
+              <button className="btn btn-outline" onClick={onLogoutButtonClick}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default Dock;
+export default DrawerLayout;
