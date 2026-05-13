@@ -57,7 +57,7 @@ function StoreItemPage() {
         {loading ? (
           <div className="p-10 text-center">Loading product...</div>
         ) : product ? (
-          <div className="flex flex-row gap-4">
+          <div className="flex flex-col md:flex-row gap-4">
             <div className="flex flex-col basis-1/2">
               <div className="carousel w-full rounded-2xl">
                 <div id="item1" className="carousel-item relative w-full">
