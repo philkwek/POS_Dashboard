@@ -139,7 +139,7 @@ const DrawerLayout: React.FC<DrawerLayoutProps> = ({ children }) => {
       <input id="my-drawer" type="checkbox" className="drawer-toggle" />
       <div className="drawer-content flex flex-col">
         {/* Navbar */}
-        <nav className="navbar sticky top-0 z-50 p-2 backdrop-blur-xl w-full h-fit justify-between flex flex-col sm:flex-row">
+        <nav className="navbar sticky top-0 z-50 p-2 bg-white/60 dark:bg-base-100/60 backdrop-blur-xl w-full h-fit justify-between flex flex-col sm:flex-row">
           <div className="flex h-fit w-full items-center flex-row justify-spaced">
             <div className="flex-none">
               {user !== null && (
