@@ -3,14 +3,13 @@ import { StoreItemType } from '@pos-dashboard/shared';
 
 interface StoreItemProp {
     item: StoreItemType;
-    storeItemOnClick: () => void;
 }
 
-function StoreItem({item, storeItemOnClick}: StoreItemProp) {
+function StoreItemFocus({item}: StoreItemProp) {
 
   return (
     <>
-      <div className="card bg-base-100 shadow-sm cursor-pointer" onClick={storeItemOnClick}>
+      <div className="card bg-base-100 shadow-sm">
         <figure>
             <img src={item.imageURL} />
         </figure>
@@ -23,4 +22,4 @@ function StoreItem({item, storeItemOnClick}: StoreItemProp) {
   )
 }
 
-export default StoreItem
+export default StoreItemFocus

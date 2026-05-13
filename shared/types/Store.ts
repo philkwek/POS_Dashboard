@@ -1,4 +1,5 @@
 export interface StoreItemType {
+    id: string;
     attributes: Array<String>;
     variants: Array<StoreItemVariantType>;
     basePrice: Number;

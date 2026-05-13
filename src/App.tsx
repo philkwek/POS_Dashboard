@@ -1,6 +1,7 @@
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import StoreFront from './pages/StoreFront';
+import StoreItemPage from './pages/StoreItemPage';
 import './App.css'
 
 function App() {
@@ -10,6 +11,7 @@ function App() {
         <Router>
           <Routes>
             <Route path="/" element={<StoreFront />} /> 
+            <Route path="/:productId" element={<StoreItemPage />} />
           </Routes>
         </Router>
       </div>

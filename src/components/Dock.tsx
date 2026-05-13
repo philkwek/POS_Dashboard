@@ -1,17 +1,21 @@
-import React from "react";
-
-// interface NavbarProps {
-//   onAdminLoginClick: () => void;
-// }
+import { useNavigate } from "react-router-dom";
 
 /**
  * Navbar component: Displays the application header and admin login/status.
  * @param onAdminLoginClick - Callback to trigger the login modal.
  */
+
 const Dock = () => {
+
+  const navigate = useNavigate();
+
+  const storeBtnOnClick = () => {
+    navigate("/");
+  }
+
   return (
     <div className="dock dock-sm">
-      <button>
+      <button onClick={storeBtnOnClick}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
