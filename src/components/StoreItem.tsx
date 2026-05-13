@@ -12,7 +12,7 @@ function StoreItem({item, storeItemOnClick}: StoreItemProp) {
     <>
       <div className="card bg-base-100 shadow-sm cursor-pointer" onClick={storeItemOnClick}>
         <figure>
-            <img src={item.imageURL} />
+            <img src={item.imageURL} loading="lazy" alt={item.name} />
         </figure>
         <div className="card-body">
             <h2 className="card-title">{item.name}</h2>

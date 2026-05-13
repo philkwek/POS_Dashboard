@@ -19,6 +19,11 @@ function StoreItemPage() {
     location.state?.product || null,
   );
   const [loading, setLoading] = useState(!product);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  const allImages = product
+    ? [product.imageURL, ...(product.additionalImages || [])]
+    : [];
 
   // Fetch product from Firestore if not passed in state
   useEffect(() => {
@@ -60,59 +65,49 @@ function StoreItemPage() {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex flex-col basis-1/2">
               <div className="carousel w-full rounded-2xl">
-                <div id="item1" className="carousel-item relative w-full">
-                  <img src={product.imageURL} />
-                  {product.additionalImages &&
-                    product.additionalImages.length > 0 && (
-                      <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
-                        <a
-                          href={`#item${1 + product.additionalImages.length}`}
-                          className="btn btn-circle"
-                        >
-                          ❮
-                        </a>
-                        <a href="#item2" className="btn btn-circle">
-                          ❯
-                        </a>
-                      </div>
-                    )}
-                </div>
-                {product.additionalImages?.map((url, index) => {
-                  const totalImages = 1 + (product.additionalImages?.length || 0);
-                  const prevId = `#item${index + 1}`;
-                  const nextId =
-                    index + 2 === totalImages ? "#item1" : `#item${index + 3}`;
-                  return (
-                    <div
-                      key={index}
-                      id={"item" + (index + 2)}
-                      className="carousel-item relative w-full"
-                    >
-                      <img src={url} />
-                      <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
-                        <a href={prevId} className="btn btn-circle">
-                          ❮
-                        </a>
-                        <a href={nextId} className="btn btn-circle">
-                          ❯
-                        </a>
-                      </div>
+                <div className="carousel-item relative w-full">
+                  <img
+                    src={allImages[activeImageIndex]}
+                    loading="lazy"
+                    alt={`${product.name} - view ${activeImageIndex + 1}`}
+                  />
+                  {allImages.length > 1 && (
+                    <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
+                      <button
+                        className="btn btn-circle"
+                        onClick={() =>
+                          setActiveImageIndex((prev) =>
+                            prev === 0 ? allImages.length - 1 : prev - 1,
+                          )
+                        }
+                      >
+                        ❮
+                      </button>
+                      <button
+                        className="btn btn-circle"
+                        onClick={() =>
+                          setActiveImageIndex((prev) =>
+                            prev === allImages.length - 1 ? 0 : prev + 1,
+                          )
+                        }
+                      >
+                        ❯
+                      </button>
                     </div>
-                  );
-                })}
+                  )}
+                </div>
               </div>
               <div className="flex w-full justify-center gap-2 py-2">
-                <a href="#item1" className="btn btn-md rounded-xl">
-                  1
-                </a>
-                {product.additionalImages?.map((_, index) => (
-                  <a
+                {allImages.map((_, index) => (
+                  <button
                     key={index}
-                    href={"#item" + (index + 2)}
-                    className="btn btn-md rounded-xl"
+                    onClick={() => setActiveImageIndex(index)}
+                    className={`btn btn-md rounded-xl ${
+                      activeImageIndex === index ? "btn-active" : ""
+                    }`}
                   >
-                    {index + 2}
-                  </a>
+                    {index + 1}
+                  </button>
                 ))}
               </div>
             </div>
