@@ -5,7 +5,6 @@ import { db } from "../firebase";
 import { StoreItemType } from "@pos-dashboard/shared";
 import "../App.css";
 
-import StoreItemFocus from "../components/StoreItemFocus";
 import Navbar from "../components/Navbar";
 import Login from "../pages/Login";
 import Dock from "../components/Dock";
@@ -74,7 +73,15 @@ function StoreItemPage() {
           <div className="p-10 text-center">Loading product...</div>
         ) : product ? (
           <div className="max-w-2xl mx-auto">
-            <StoreItemFocus item={product} />
+            <div className="card bg-base-100 shadow-sm">
+              <figure>
+                <img src={product.imageURL} />
+              </figure>
+              <div className="card-body">
+                <h2 className="card-title">{product.name}</h2>
+                <p>{product.description}</p>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="p-10 text-center text-error">Product not found.</div>
