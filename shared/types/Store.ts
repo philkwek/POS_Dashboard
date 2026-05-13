@@ -5,6 +5,7 @@ export interface StoreItemType {
     basePrice: Number;
     description: string;
     imageURL: string;
+    additionalImages: Array<string>;
     isActive: boolean;
     name: string;
 }
