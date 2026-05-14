@@ -14,12 +14,13 @@ function StoreItemPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const stateProduct = location.state?.product as StoreItemType | undefined;
+  const hasMatchingStateProduct = !!(stateProduct && stateProduct.id === productId);
 
   // Prefer route-state product when it matches this route
   const [product, setProduct] = useState<StoreItemType | null>(
-    stateProduct && stateProduct.id === productId ? stateProduct : null,
+    hasMatchingStateProduct ? stateProduct : null,
   );
-  const [loading, setLoading] = useState(!(stateProduct && stateProduct.id === productId));
+  const [loading, setLoading] = useState(!hasMatchingStateProduct);
 
   const allImages = product
     ? [product.imageURL, ...(product.additionalImages || [])]
