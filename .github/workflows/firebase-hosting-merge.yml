@@ -6,6 +6,8 @@ on:
   push:
     branches:
       - main
+permissions:
+  contents: read
 jobs:
   e2e_full_regression:
     runs-on: ubuntu-latest
