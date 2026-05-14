@@ -93,7 +93,7 @@ export default defineConfig({
     defaultCommandTimeout: 10000,
     pageLoadTimeout: 120000,
     retries: {
-      runMode: 2,
+      runMode: 1,
       openMode: 0,
     },
     setupNodeEvents(on) {

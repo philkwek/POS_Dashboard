@@ -21,9 +21,17 @@ describe('Edge Cases and Failure Paths', () => {
   });
 
   it('renders long and special characters safely', () => {
-    cy.visit('/edge-text-item');
+    cy.visit('/edge-text-item', {
+      onBeforeLoad(win) {
+        (win as Window & { __alertCalls: number }).__alertCalls = 0;
+        win.alert = () => {
+          (win as Window & { __alertCalls: number }).__alertCalls += 1;
+        };
+      },
+    });
     cy.getBySel('product-name').should('contain', 'Special <> & "Quoted" Product');
     cy.getBySel('product-description').should('contain', '<script>alert(\'xss\')</script>');
+    cy.window().its('__alertCalls').should('eq', 0);
   });
 
   it('redirects safely when local session is cleared on a protected page', () => {
