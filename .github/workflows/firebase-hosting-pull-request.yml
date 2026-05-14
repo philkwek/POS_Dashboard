@@ -8,7 +8,50 @@ permissions:
   contents: read
   pull-requests: write
 jobs:
+  e2e_smoke:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx -y firebase-tools@latest emulators:start --project pos-dashboard-zion --only auth,functions,firestore,storage --import ./emulator_data --export-on-exit=./emulator_data > /tmp/firebase-emulator.log 2>&1 &
+      - run: npm run dev -- --host 127.0.0.1 --port 5173 > /tmp/vite-dev.log 2>&1 &
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_DATABASE_URL: ${{ secrets.VITE_FIREBASE_DATABASE_URL }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_FIREBASE_MEASUREMENT_ID: ${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}
+      - name: Wait for frontend
+        run: npx wait-on@latest http://127.0.0.1:5173
+      - name: Wait for Firestore emulator
+        run: npx wait-on@latest tcp:127.0.0.1:8080
+      - run: npm run e2e:smoke
+        env:
+          FIREBASE_AUTH_EMULATOR_HOST: 127.0.0.1:9099
+          FIRESTORE_EMULATOR_HOST: 127.0.0.1:8080
+          CYPRESS_FIREBASE_PROJECT_ID: pos-dashboard-zion
+      - name: Upload Cypress artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-smoke-artifacts
+          path: |
+            cypress/screenshots
+            cypress/videos
+            /tmp/firebase-emulator.log
+            /tmp/vite-dev.log
+          if-no-files-found: ignore
   build_and_preview:
+    needs: e2e_smoke
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     steps:

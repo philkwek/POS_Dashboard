@@ -136,7 +136,7 @@ const DrawerLayout: React.FC<DrawerLayoutProps> = ({ children }) => {
 
   return (
     <div className="drawer md:drawer-open">
-      <input id="my-drawer" type="checkbox" className="drawer-toggle" />
+      <input id="my-drawer" type="checkbox" className="drawer-toggle" data-cy="drawer-checkbox" />
       <div className="drawer-content flex flex-col">
         {/* Navbar */}
         <nav className="navbar sticky top-0 z-50 p-2 bg-white/60 dark:bg-base-100/60 backdrop-blur-xl w-full h-fit justify-between flex flex-col sm:flex-row">
@@ -147,6 +147,7 @@ const DrawerLayout: React.FC<DrawerLayoutProps> = ({ children }) => {
                   htmlFor="my-drawer"
                   aria-label="open sidebar"
                   className="btn btn-square btn-ghost"
+                  data-cy="drawer-toggle"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -168,16 +169,17 @@ const DrawerLayout: React.FC<DrawerLayoutProps> = ({ children }) => {
             <button
               className="btn btn-ghost text-xl grow"
               onClick={() => navigate("/")}
+              data-cy="navbar-home"
             >
               🚀 Detonate Fundraising 🚀
             </button>
           </div>
           {user == null ? (
-            <button className="btn btn-ghost" onClick={onAdminLoginClick}>
+            <button className="btn btn-ghost" onClick={onAdminLoginClick} data-cy="admin-button">
               Admin
             </button>
           ) : (
-            <button className="btn btn-ghost" onClick={onLogoutButtonClick}>
+            <button className="btn btn-ghost" onClick={onLogoutButtonClick} data-cy="admin-user-button">
               Admin: {user.displayName || user.email}
             </button>
           )}
@@ -202,6 +204,7 @@ const DrawerLayout: React.FC<DrawerLayoutProps> = ({ children }) => {
                     onClick={() => onSidebarLinkClick(link.path)}
                     className="is-drawer-close:tooltip is-drawer-close:tooltip-right"
                     data-tip={link.name}
+                    data-cy={`drawer-link-${link.name.toLowerCase()}`}
                   >
                     {link.icon}
                     <span className="is-drawer-close:hidden">{link.name}</span>
@@ -218,14 +221,14 @@ const DrawerLayout: React.FC<DrawerLayoutProps> = ({ children }) => {
 
       {/* Logout Confirmation Modal */}
       {isLogout && (
-        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-xs z-50">
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-xs z-50" data-cy="logout-modal">
           <div className="card bg-base-100 p-7 flex flex-col gap-5 border border-base-300 shadow-xl">
             <h1 className="text-center">Confirm Logout?</h1>
             <div className="flex flex-row gap-4">
-              <button className="btn btn-error" onClick={onConfirmLogoutClick}>
+              <button className="btn btn-error" onClick={onConfirmLogoutClick} data-cy="logout-confirm">
                 Logout
               </button>
-              <button className="btn btn-outline" onClick={onLogoutButtonClick}>
+              <button className="btn btn-outline" onClick={onLogoutButtonClick} data-cy="logout-cancel">
                 Cancel
               </button>
             </div>

@@ -12,7 +12,7 @@ const ProtectedRoute: React.FC = () => {
   // Show nothing while checking authentication state
   if (loading) {
     return (
-        <div className="flex h-screen w-screen items-center justify-center">
+        <div className="flex h-screen w-screen items-center justify-center" data-cy="auth-loading">
             <span className="loading loading-spinner loading-lg"></span>
         </div>
     );
