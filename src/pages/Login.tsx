@@ -29,13 +29,13 @@ function Login({ adminLoginOnClick }: LoginProps) {
     };
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-xs z-50">
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-xs z-50" data-cy="login-modal">
             {/* Login Form Card */}
             <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
                 <div className="flex flex-row justify-between">
                     <h1 className="text-xl font-bold">Login</h1>
                     {/* Close Button */}
-                    <button className="btn btn-square" onClick={adminLoginOnClick}>X</button>
+                    <button className="btn btn-square" onClick={adminLoginOnClick} data-cy="login-close">X</button>
                 </div>
                 <p>For admins only</p>
                 
@@ -47,6 +47,7 @@ function Login({ adminLoginOnClick }: LoginProps) {
                     placeholder="Email" 
                     value={email}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                    data-cy="login-email"
                 />
 
                 {/* Password Input */}
@@ -57,10 +58,11 @@ function Login({ adminLoginOnClick }: LoginProps) {
                     placeholder="Password" 
                     value={password}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                    data-cy="login-password"
                 />
 
                 {/* Submit Button */}
-                <button className="btn btn-outline mt-4" onClick={handleLogin}>Login</button>
+                <button className="btn btn-outline mt-4" onClick={handleLogin} data-cy="login-submit">Login</button>
             </fieldset>
         </div>
     )

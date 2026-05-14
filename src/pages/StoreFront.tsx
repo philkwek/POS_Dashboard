@@ -51,9 +51,9 @@ function StoreFront() {
     <div className="flex flex-col relative m-4">
       {/* Main Product Grid */}
       {loading ? (
-        <div className="p-10 text-center">Loading products...</div>
+        <div className="p-10 text-center" data-cy="storefront-loading">Loading products...</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" data-cy="storefront-grid">
           {products.map((product) => (
             <StoreItem
               key={product.id}

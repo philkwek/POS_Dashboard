@@ -73,6 +73,19 @@ In a separate terminal window, start the Vite development server:
 npm run dev
 ```
 
+### Run Cypress E2E Tests
+In separate terminals, run emulators + frontend, then execute Cypress:
+```bash
+npm run emulators
+npm run dev
+npm run e2e
+```
+
+Smoke subset (for quick regression checks):
+```bash
+npm run e2e:smoke
+```
+
 ### Sync Live Data to Emulator (One-Time/As Needed)
 If you need fresh data from the live production database in your local emulator:
 1. Ensure the emulators are running (`npm run emulators`).

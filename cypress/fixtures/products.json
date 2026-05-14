@@ -1,0 +1,56 @@
+[
+  {
+    "id": "single-image-item",
+    "name": "Starter Pack",
+    "description": "Single image product used for default detail rendering.",
+    "imageURL": "https://images.example.com/starter-pack.jpg",
+    "attributes": ["default"],
+    "variants": [
+      { "name": "Standard", "priceModifier": 0, "stock": 10 }
+    ],
+    "basePrice": 100,
+    "isActive": true
+  },
+  {
+    "id": "multi-image-item",
+    "name": "Collector Box",
+    "description": "Multi image product for carousel coverage.",
+    "imageURL": "https://images.example.com/collector-box-main.jpg",
+    "additionalImages": [
+      "https://images.example.com/collector-box-side.jpg",
+      "https://images.example.com/collector-box-back.jpg"
+    ],
+    "attributes": ["limited", "featured"],
+    "variants": [
+      { "name": "Standard", "priceModifier": 0, "stock": 5 },
+      { "name": "Premium", "priceModifier": 25, "stock": 2 }
+    ],
+    "basePrice": 250,
+    "isActive": true
+  },
+  {
+    "id": "edge-text-item",
+    "name": "Special <> & \"Quoted\" Product — 超長名稱🚀",
+    "description": "Long description with special characters: <script>alert('xss')</script> & symbols !@#$%^&*() repeated to validate rendering safety and truncation behavior across screens.",
+    "imageURL": "https://images.example.com/special-text-item.jpg",
+    "attributes": ["special"],
+    "variants": [
+      { "name": "Unique", "priceModifier": 0, "stock": 1 }
+    ],
+    "basePrice": 999,
+    "isActive": true
+  },
+  {
+    "id": "inactive-item",
+    "name": "Inactive Item",
+    "description": "Inactive record included to validate data handling edge cases.",
+    "imageURL": "https://images.example.com/inactive-item.jpg",
+    "additionalImages": [],
+    "attributes": ["inactive"],
+    "variants": [
+      { "name": "Legacy", "priceModifier": -10, "stock": 0 }
+    ],
+    "basePrice": 80,
+    "isActive": false
+  }
+]

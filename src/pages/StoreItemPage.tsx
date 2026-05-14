@@ -13,12 +13,14 @@ function StoreItemPage() {
   const { productId } = useParams<{ productId: string }>();
   const location = useLocation();
   const navigate = useNavigate();
+  const stateProduct = location.state?.product as StoreItemType | undefined;
+  const hasMatchingStateProduct = !!(stateProduct && stateProduct.id === productId);
 
-  // Try to get the product from location state first
+  // Prefer route-state product when it matches this route
   const [product, setProduct] = useState<StoreItemType | null>(
-    location.state?.product || null,
+    hasMatchingStateProduct ? stateProduct : null,
   );
-  const [loading, setLoading] = useState(!product);
+  const [loading, setLoading] = useState(!hasMatchingStateProduct);
 
   const allImages = product
     ? [product.imageURL, ...(product.additionalImages || [])]
@@ -37,49 +39,83 @@ function StoreItemPage() {
 
   // Fetch product from Firestore if not passed in state
   useEffect(() => {
-    const fetchProduct = async () => {
-      if (!product && productId) {
-        try {
-          const docRef = doc(db, "products", productId);
-          const docSnap = await getDoc(docRef);
+    let isMounted = true;
 
-          if (docSnap.exists()) {
-            setProduct({
-              id: docSnap.id,
-              ...docSnap.data(),
-            } as StoreItemType);
-          } else {
-            console.error("No such product!");
-          }
-        } catch (error) {
+    const fetchProduct = async () => {
+      if (!productId) {
+        if (isMounted) {
+          setProduct(null);
+          setLoading(false);
+        }
+        return;
+      }
+
+      if (stateProduct && stateProduct.id === productId) {
+        if (isMounted) {
+          setProduct(stateProduct);
+          setLoading(false);
+        }
+        return;
+      }
+
+      if (isMounted) {
+        setProduct(null);
+        setLoading(true);
+      }
+
+      try {
+        const docRef = doc(db, "products", productId);
+        const docSnap = await getDoc(docRef);
+
+        if (!isMounted) return;
+
+        if (docSnap.exists()) {
+          setProduct({
+            id: docSnap.id,
+            ...docSnap.data(),
+          } as StoreItemType);
+        } else {
+          setProduct(null);
+          console.error("No such product!");
+        }
+      } catch (error) {
+        if (isMounted) {
+          setProduct(null);
           console.error("Error fetching product: ", error);
-        } finally {
+        }
+      } finally {
+        if (isMounted) {
           setLoading(false);
         }
       }
     };
 
     fetchProduct();
-  }, [productId, product]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [productId, stateProduct]);
 
   return (
     <div className="flex flex-col relative">
       <div className="m-4">
-        <button className="btn btn-outline mb-4" onClick={() => navigate("/")}>
+        <button className="btn btn-outline mb-4" onClick={() => navigate("/")} data-cy="back-to-store">
           ← Back to Store
         </button>
 
         {loading ? (
-          <div className="p-10 text-center">Loading product...</div>
+          <div className="p-10 text-center" data-cy="product-loading">Loading product...</div>
         ) : product ? (
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col md:flex-row gap-4" data-cy="product-detail">
             <div className="flex flex-col basis-1/2">
-              <div className="carousel w-full rounded-2xl">
+              <div className="carousel w-full rounded-2xl" data-cy="product-carousel">
                 {allImages.map((image, index) => (
                   <div
                     key={index}
                     id={`slide-${index}`}
                     className="carousel-item relative w-full"
+                    data-cy={`product-slide-${index}`}
                   >
                     <img
                       src={image}
@@ -95,6 +131,7 @@ function StoreItemPage() {
                             )
                           }
                           className="btn btn-circle"
+                          data-cy="carousel-prev"
                         >
                           ❮
                         </button>
@@ -105,6 +142,7 @@ function StoreItemPage() {
                             )
                           }
                           className="btn btn-circle"
+                          data-cy="carousel-next"
                         >
                           ❯
                         </button>
@@ -120,6 +158,7 @@ function StoreItemPage() {
                       key={index}
                       onClick={() => scrollToSlide(index)}
                       className="btn btn-md rounded-xl"
+                      data-cy={`carousel-index-${index}`}
                     >
                       {index + 1}
                     </button>
@@ -128,12 +167,12 @@ function StoreItemPage() {
               )}
             </div>
             <div className="flex flex-col basis-1/2">
-              <h1 className="card-title">{product.name}</h1>
-              <p>{product.description}</p>
+              <h1 className="card-title" data-cy="product-name">{product.name}</h1>
+              <p data-cy="product-description">{product.description}</p>
             </div>
           </div>
         ) : (
-          <div className="p-10 text-center text-error">Product not found.</div>
+          <div className="p-10 text-center text-error" data-cy="product-not-found">Product not found.</div>
         )}
       </div>
     </div>
