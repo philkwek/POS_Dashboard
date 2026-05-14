@@ -19,11 +19,21 @@ function StoreItemPage() {
     location.state?.product || null,
   );
   const [loading, setLoading] = useState(!product);
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   const allImages = product
     ? [product.imageURL, ...(product.additionalImages || [])]
     : [];
+
+  const scrollToSlide = (index: number) => {
+    const element = document.getElementById(`slide-${index}`);
+    if (element) {
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "start",
+      });
+    }
+  };
 
   // Fetch product from Firestore if not passed in state
   useEffect(() => {
@@ -65,51 +75,57 @@ function StoreItemPage() {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex flex-col basis-1/2">
               <div className="carousel w-full rounded-2xl">
-                <div className="carousel-item relative w-full">
-                  <img
-                    src={allImages[activeImageIndex]}
-                    loading="lazy"
-                    alt={`${product.name} - view ${activeImageIndex + 1}`}
-                  />
-                  {allImages.length > 1 && (
-                    <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
-                      <button
-                        className="btn btn-circle"
-                        onClick={() =>
-                          setActiveImageIndex((prev) =>
-                            prev === 0 ? allImages.length - 1 : prev - 1,
-                          )
-                        }
-                      >
-                        ❮
-                      </button>
-                      <button
-                        className="btn btn-circle"
-                        onClick={() =>
-                          setActiveImageIndex((prev) =>
-                            prev === allImages.length - 1 ? 0 : prev + 1,
-                          )
-                        }
-                      >
-                        ❯
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="flex w-full justify-center gap-2 py-2">
-                {allImages.map((_, index) => (
-                  <button
+                {allImages.map((image, index) => (
+                  <div
                     key={index}
-                    onClick={() => setActiveImageIndex(index)}
-                    className={`btn btn-md rounded-xl ${
-                      activeImageIndex === index ? "btn-active" : ""
-                    }`}
+                    id={`slide-${index}`}
+                    className="carousel-item relative w-full"
                   >
-                    {index + 1}
-                  </button>
+                    <img
+                      src={image}
+                      alt={`${product.name} - view ${index + 1}`}
+                      className="w-full"
+                    />
+                    {allImages.length > 1 && (
+                      <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
+                        <button
+                          onClick={() =>
+                            scrollToSlide(
+                              index === 0 ? allImages.length - 1 : index - 1,
+                            )
+                          }
+                          className="btn btn-circle"
+                        >
+                          ❮
+                        </button>
+                        <button
+                          onClick={() =>
+                            scrollToSlide(
+                              index === allImages.length - 1 ? 0 : index + 1,
+                            )
+                          }
+                          className="btn btn-circle"
+                        >
+                          ❯
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
+              {allImages.length > 1 && (
+                <div className="flex w-full justify-center gap-2 py-2">
+                  {allImages.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => scrollToSlide(index)}
+                      className="btn btn-md rounded-xl"
+                    >
+                      {index + 1}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="flex flex-col basis-1/2">
               <h1 className="card-title">{product.name}</h1>
