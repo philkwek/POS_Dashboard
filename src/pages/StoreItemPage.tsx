@@ -39,11 +39,11 @@ function StoreItemPage() {
 
   // Fetch product from Firestore if not passed in state
   useEffect(() => {
-    let mounted = true;
+    let isMounted = true;
 
     const fetchProduct = async () => {
       if (!productId) {
-        if (mounted) {
+        if (isMounted) {
           setProduct(null);
           setLoading(false);
         }
@@ -51,14 +51,14 @@ function StoreItemPage() {
       }
 
       if (stateProduct && stateProduct.id === productId) {
-        if (mounted) {
+        if (isMounted) {
           setProduct(stateProduct);
           setLoading(false);
         }
         return;
       }
 
-      if (mounted) {
+      if (isMounted) {
         setProduct(null);
         setLoading(true);
       }
@@ -67,7 +67,7 @@ function StoreItemPage() {
         const docRef = doc(db, "products", productId);
         const docSnap = await getDoc(docRef);
 
-        if (!mounted) return;
+        if (!isMounted) return;
 
         if (docSnap.exists()) {
           setProduct({
@@ -79,12 +79,12 @@ function StoreItemPage() {
           console.error("No such product!");
         }
       } catch (error) {
-        if (mounted) {
+        if (isMounted) {
           setProduct(null);
           console.error("Error fetching product: ", error);
         }
       } finally {
-        if (mounted) {
+        if (isMounted) {
           setLoading(false);
         }
       }
@@ -93,7 +93,7 @@ function StoreItemPage() {
     fetchProduct();
 
     return () => {
-      mounted = false;
+      isMounted = false;
     };
   }, [productId, stateProduct]);
 
