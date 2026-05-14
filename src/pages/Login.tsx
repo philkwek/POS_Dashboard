@@ -60,7 +60,7 @@ function Login({ adminLoginOnClick }: LoginProps) {
                 />
 
                 {/* Submit Button */}
-                <button className="btn btn-neutral mt-4" onClick={handleLogin}>Login</button>
+                <button className="btn btn-outline mt-4" onClick={handleLogin}>Login</button>
             </fieldset>
         </div>
     )
