@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 interface LoginProps {
@@ -46,7 +46,7 @@ function Login({ adminLoginOnClick }: LoginProps) {
                     className="input" 
                     placeholder="Email" 
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                 />
 
                 {/* Password Input */}
@@ -56,7 +56,7 @@ function Login({ adminLoginOnClick }: LoginProps) {
                     className="input" 
                     placeholder="Password" 
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                 />
 
                 {/* Submit Button */}
