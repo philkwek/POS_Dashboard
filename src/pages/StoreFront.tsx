@@ -16,7 +16,7 @@ function StoreFront() {
   const [products, setProducts] = useState<StoreItemType[]>([]);
   // State to track if the data is still being loaded
   const [loading, setLoading] = useState(true);
-  
+
   const navigate = useNavigate();
 
   // Opens specific product page
