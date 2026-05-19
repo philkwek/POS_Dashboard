@@ -158,8 +158,8 @@ function StoreItemPage() {
               <h1 className="text-base">{"$" + product.basePrice}</h1>
               <p>{product.description}</p>
               {variants.length > 0 && (
-                <select className="select mt-1 select-bordered w-full justify-self-stretch" defaultValue="Variant">
-                  <option disabled={true}>Variant</option>
+                <select className="select mt-1 select-bordered w-full justify-self-stretch" defaultValue="Variants">
+                  <option disabled={true}>Variants</option>
                   {variants.map((variant, index) => (
                     <option key={index} value={variant.name}>
                       {variant.name} {variant.priceModifier ? `(+$${variant.priceModifier})` : ""}
