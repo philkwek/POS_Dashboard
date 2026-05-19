@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
-import { StoreItemType } from "@pos-dashboard/shared";
+import { StoreItemType, StoreItemVariantType } from "@pos-dashboard/shared";
 import "../App.css";
 
 /**
@@ -19,6 +19,7 @@ function StoreItemPage() {
     location.state?.product || null,
   );
   const [loading, setLoading] = useState(!product);
+  const [variants, setVariants] = useState<StoreItemVariantType[]>([]);
 
   const allImages = product
     ? [product.imageURL, ...(product.additionalImages || [])]
@@ -61,6 +62,31 @@ function StoreItemPage() {
 
     fetchProduct();
   }, [productId, product]);
+
+  // Fetch variants subcollection
+  useEffect(() => {
+    const fetchVariants = async () => {
+      const idToFetch = product?.id || productId;
+      if (!idToFetch) return;
+
+      try {
+        const variantsRef = collection(db, "products", idToFetch, "variants");
+        const snapshot = await getDocs(variantsRef);
+        const variantsData = snapshot.docs.map(
+          (doc) =>
+            ({
+              id: doc.id,
+              ...doc.data(),
+            }) as unknown as StoreItemVariantType,
+        );
+        setVariants(variantsData);
+      } catch (error) {
+        console.error("Error fetching variants: ", error);
+      }
+    };
+
+    fetchVariants();
+  }, [product?.id, productId]);
 
   return (
     <div className="flex flex-col relative">
@@ -127,9 +153,20 @@ function StoreItemPage() {
                 </div>
               )}
             </div>
-            <div className="flex flex-col basis-1/2">
-              <h1 className="card-title">{product.name}</h1>
+            <div className="flex flex-col gap-2 basis-1/2">
+              <h1 className="card-title text-xl uppercase">{product.name}</h1>
+              <h1 className="text-base">{"$" + product.basePrice}</h1>
               <p>{product.description}</p>
+              {variants.length > 0 && (
+                <select className="select mt-1 select-bordered w-full justify-self-stretch" defaultValue="Variant">
+                  <option disabled={true}>Variant</option>
+                  {variants.map((variant, index) => (
+                    <option key={index} value={variant.name}>
+                      {variant.name} {variant.priceModifier ? `(+$${variant.priceModifier})` : ""}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
           </div>
         ) : (

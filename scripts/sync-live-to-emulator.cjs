@@ -23,7 +23,20 @@ async function run() {
   for (const colName of collectionsToSync) {
     console.log(`Reading Firestore collection: ${colName}...`);
     const snapshot = await liveDb.collection(colName).get();
-    allData[colName] = snapshot.docs.map(doc => ({ id: doc.id, data: doc.data() }));
+    const docs = [];
+    
+    for (const doc of snapshot.docs) {
+      const docData = { id: doc.id, data: doc.data() };
+      
+      if (colName === 'products') {
+        const variantsSnapshot = await doc.ref.collection('variants').get();
+        docData.variants = variantsSnapshot.docs.map(vDoc => ({ id: vDoc.id, data: vDoc.data() }));
+      }
+      
+      docs.push(docData);
+    }
+    
+    allData[colName] = docs;
     console.log(`Found ${allData[colName].length} documents in ${colName}.`);
   }
 
@@ -80,12 +93,23 @@ async function run() {
     
     console.log(`Writing Firestore collection: ${colName}...`);
     const batch = emulatorDb.batch();
-    allData[colName].forEach(item => {
+    let count = 0;
+    
+    for (const item of allData[colName]) {
       const docRef = emulatorDb.collection(colName).doc(item.id);
       batch.set(docRef, item.data);
-    });
+      count++;
+      
+      if (item.variants && item.variants.length > 0) {
+        item.variants.forEach(variant => {
+          const variantRef = docRef.collection('variants').doc(variant.id);
+          batch.set(variantRef, variant.data);
+          count++;
+        });
+      }
+    }
     await batch.commit();
-    console.log(`Finished writing Firestore collection: ${colName}.`);
+    console.log(`Finished writing Firestore collection: ${colName} (${count} docs/subdocs).`);
   }
 
   // Write Storage
