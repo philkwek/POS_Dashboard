@@ -21,6 +21,10 @@ function StoreItemPage() {
   const [loading, setLoading] = useState(!product);
   const [variants, setVariants] = useState<StoreItemVariantType[]>([]);
 
+  // Inputs for Product
+  const [quantityInput, setQuantityInput] = useState<number>(1);
+  const [variantInput, setVariantInput] = useState<string>("");
+
   const allImages = product
     ? [product.imageURL, ...(product.additionalImages || [])]
     : [];
@@ -36,7 +40,23 @@ function StoreItemPage() {
     }
   };
 
-  // Fetch product from Firestore if not passed in state
+  const onAddToCartOnClick = () => {
+    console.log("Adding to cart:", {
+      productId: product?.id,
+      productName: product?.name,
+      variant: variantInput,
+      quantity: quantityInput,
+      totalPrice:
+        (Number(product?.basePrice) +
+          (variants.find((v) => v.name === variantInput)?.priceModifier || 0)) *
+        Number(quantityInput),
+    });
+    alert(
+      `Added ${quantityInput} x ${product?.name} (${variantInput || "No variant"}) to cart!`,
+    );
+  };
+
+  // Fetch product from Firestore if not passed in stateg
   useEffect(() => {
     const fetchProduct = async () => {
       if (!product && productId) {
@@ -160,9 +180,12 @@ function StoreItemPage() {
               {variants.length > 0 && (
                 <select
                   className="select mt-1 select-bordered w-full justify-self-stretch"
-                  defaultValue="Variants"
+                  value={variantInput}
+                  onChange={(e) => setVariantInput(e.target.value)}
                 >
-                  <option disabled={true}>Variants</option>
+                  <option value="" disabled={true}>
+                    Variants
+                  </option>
                   {variants.map((variant, index) => (
                     <option key={index} value={variant.name}>
                       {variant.name}{" "}
@@ -181,10 +204,18 @@ function StoreItemPage() {
                   placeholder="Quantity"
                   min="1"
                   max="10"
+                  value={quantityInput.toString()}
+                  onChange={(e) =>
+                    setQuantityInput(parseInt(e.target.value) || 1)
+                  }
                   title="Must be between be 1 to 10"
                 />
               </div>
-              <button className="btn btn-lg flex flex-row gap-2">
+              <button
+                className="btn btn-lg flex flex-row gap-2 btn-primary"
+                onClick={onAddToCartOnClick}
+                disabled={variants.length > 0 && !variantInput}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"

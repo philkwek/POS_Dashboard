@@ -2,7 +2,7 @@ export interface StoreItemType {
     id: string;
     attributes: Array<String>;
     variants: Array<StoreItemVariantType>;
-    basePrice: Number;
+    basePrice: number;
     description: string;
     imageURL: string;
     additionalImages: Array<string>;
@@ -12,6 +12,6 @@ export interface StoreItemType {
 
 export interface StoreItemVariantType {
     name: string;
-    priceModifier: Number;
-    stock: Number;
+    priceModifier: number;
+    stock: number;
 }
