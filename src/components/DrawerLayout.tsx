@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useRef, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Login from "../pages/Login";
 
@@ -10,8 +10,17 @@ interface DrawerLayoutProps {
 const DrawerLayout: React.FC<DrawerLayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [loginVisible, setLoginVisible] = useState(false);
   const [isLogout, setIsLogout] = useState(false);
+
+  const previousPathRef = useRef<string>("/");
+
+  useEffect(() => {
+    if (location.pathname !== "/cart") {
+      previousPathRef.current = location.pathname + location.search + location.hash;
+    }
+  }, [location]);
 
   const onAdminLoginClick = () => {
     setLoginVisible(!loginVisible);
@@ -36,6 +45,14 @@ const DrawerLayout: React.FC<DrawerLayoutProps> = ({ children }) => {
     if (window.innerWidth < 768) {
       const drawer = document.getElementById("my-drawer") as HTMLInputElement;
       if (drawer) drawer.checked = false;
+    }
+  };
+
+  const onCartButtonClick = () => {
+    if (location.pathname === "/cart") {
+      navigate(previousPathRef.current);
+    } else {
+      navigate("/cart");
     }
   };
 
@@ -182,7 +199,7 @@ const DrawerLayout: React.FC<DrawerLayoutProps> = ({ children }) => {
                 Admin: {user.displayName || user.email}
               </button>
             )}
-            <button className="btn btn-square btn-ghost">
+            <button className="btn btn-square btn-ghost" onClick={onCartButtonClick}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"

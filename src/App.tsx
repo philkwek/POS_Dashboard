@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import DrawerLayout from './components/DrawerLayout';
 import StoreFront from './pages/StoreFront';
 import StoreItemPage from './pages/StoreItemPage';
+import Cart from './pages/Cart';
 import Finance from './pages/Finance';
 import Inventory from './pages/Inventory';
 import Pos from './pages/Pos';
@@ -18,6 +19,7 @@ function App() {
           <DrawerLayout>
             <Routes>
               <Route path="/" element={<StoreFront />} /> 
+              <Route path="/cart" element={<Cart />} />
               <Route path="/:productId" element={<StoreItemPage />} />
               
               {/* Protected Admin Routes */}
