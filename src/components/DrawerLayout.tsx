@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Login from "../pages/Login";
@@ -13,14 +13,6 @@ const DrawerLayout: React.FC<DrawerLayoutProps> = ({ children }) => {
   const location = useLocation();
   const [loginVisible, setLoginVisible] = useState(false);
   const [isLogout, setIsLogout] = useState(false);
-
-  const previousPathRef = useRef<string>("/");
-
-  useEffect(() => {
-    if (location.pathname !== "/cart") {
-      previousPathRef.current = location.pathname + location.search + location.hash;
-    }
-  }, [location]);
 
   const onAdminLoginClick = () => {
     setLoginVisible(!loginVisible);
@@ -50,7 +42,7 @@ const DrawerLayout: React.FC<DrawerLayoutProps> = ({ children }) => {
 
   const onCartButtonClick = () => {
     if (location.pathname === "/cart") {
-      navigate(previousPathRef.current);
+      navigate(-1);
     } else {
       navigate("/cart");
     }
