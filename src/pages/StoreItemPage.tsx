@@ -3,6 +3,7 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import { StoreItemType, StoreItemVariantType } from "@pos-dashboard/shared";
+import { useCartStore } from "../store/useCartStore";
 import "../App.css";
 
 /**
@@ -25,6 +26,9 @@ function StoreItemPage() {
   const [quantityInput, setQuantityInput] = useState<number>(1);
   const [variantInput, setVariantInput] = useState<string>("");
 
+  const [showToast, setShowToast] = useState(false);
+  const addItem = useCartStore((state) => state.addItem);
+
   const allImages = product
     ? [product.imageURL, ...(product.additionalImages || [])]
     : [];
@@ -41,20 +45,27 @@ function StoreItemPage() {
   };
 
   const onAddToCartOnClick = () => {
-    console.log("Adding to cart:", {
-      productId: product?.id,
-      productName: product?.name,
-      variant: variantInput,
+    if (!product) return;
+    
+    const selectedVariant = variants.find((v) => v.name === variantInput);
+    addItem({
+      item: {
+        ...product,
+        selectedVariant,
+      },
       quantity: quantityInput,
-      totalPrice:
-        (Number(product?.basePrice) +
-          (variants.find((v) => v.name === variantInput)?.priceModifier || 0)) *
-        Number(quantityInput),
     });
-    alert(
-      `Added ${quantityInput} x ${product?.name} (${variantInput || "No variant"}) to cart!`,
-    );
+ 
+    setShowToast(true);
   };
+
+  // Auto-hide toast after 3 seconds
+  useEffect(() => {
+    if (showToast) {
+      const timer = setTimeout(() => setShowToast(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showToast]);
 
   // Fetch product from Firestore if not passed in stateg
   useEffect(() => {
@@ -110,6 +121,26 @@ function StoreItemPage() {
 
   return (
     <div className="flex flex-col relative">
+      {showToast && (
+        <div className="toast toast-top toast-end z-50 p-4">
+          <div className="alert alert-success shadow-lg flex items-center gap-2 rounded-xl bg-success text-success-content border-none">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="stroke-current shrink-0 h-6 w-6 animate-bounce"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span className="font-semibold">Added to cart successfully! 🛒</span>
+          </div>
+        </div>
+      )}
       <div className="m-4">
         <button className="btn btn-outline mb-4" onClick={() => navigate("/")}>
           ← Back to Store

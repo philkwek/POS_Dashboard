@@ -35,7 +35,7 @@ const CartItem: React.FC<CartItemProps> = ({
   // Format price helper
   const formattedPrice = new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'SGD',
   }).format(totalPrice);
 
   const handleDecrement = () => {
@@ -74,12 +74,7 @@ const CartItem: React.FC<CartItemProps> = ({
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25-3v13.5m0-13.5L10.5 5.25M12 4.5l1.5.75M21.75 7.5a2.25 2.25 0 01-2.25 2.25H4.5A2.25 2.25 0 012.25 7.5g"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.75 10.5a3 3 0 11-6 0M4.5 7.5L6.622 18.132a2.25 2.25 0 002.247 2.118h6.262a2.25 2.25 0 002.247-2.118L19.5 7.5M4.5 7.5h15"
+                d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
               />
             </svg>
           </div>

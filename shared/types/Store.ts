@@ -16,3 +16,7 @@ export interface StoreItemVariantType {
     priceModifier: number;
     stock: number;
 }
+
+export type StoreItemVariantCombinedType = StoreItemType & {
+    selectedVariant?: StoreItemVariantType;
+};
