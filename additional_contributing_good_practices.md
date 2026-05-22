@@ -1,9 +1,5 @@
 # Additional Contributing Good Practices
 
-Writing great commit messages is one of those habits that separates junior developers from true professionals. When your repository's history is clean, debugging with `git blame` or generating automated changelogs for your dashboard becomes effortless.
-
-Here is the industry-standard blueprint for writing pristine commit messages.
-
 ---
 
 ## 1. The Imperative Mood (The Golden Rule)
