@@ -102,3 +102,8 @@ npm run db:sync
 1. **Shared Types**: If you create a new data model that needs to be used by both the frontend and backend, define it in `shared/types/` and export it from `shared/index.ts`.
 2. **Environment Checks**: The frontend automatically connects to the local emulators when `import.meta.env.DEV` is true. Do not hardcode emulator connections.
 3. **Secrets**: Never commit `.env` files or `service-account.json`. Always check `.gitignore` if adding new credential files.
+
+### Writing Good Commit Messages
+
+For guidelines on writing high-quality, professional commits, see our [Additional Contributing Good Practices](additional_contributing_good_practices.md) guide.
+
