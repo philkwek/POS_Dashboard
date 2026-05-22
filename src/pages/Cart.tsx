@@ -85,24 +85,16 @@ const Cart: React.FC = () => {
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           {/* Cart Items List */}
           <div className="flex-1 w-full flex flex-col gap-4">
-            {items.map((cartItem) => {
-              const priceModifier = cartItem.item.selectedVariant?.priceModifier || 0;
-              const totalPrice = (cartItem.item.basePrice + priceModifier) * cartItem.quantity;
-              return (
-                <CartItem
-                  key={`${cartItem.item.id}-${cartItem.item.selectedVariant?.name || "default"}`}
-                  productName={cartItem.item.name}
-                  variant={cartItem.item.selectedVariant?.name}
-                  quantity={cartItem.quantity}
-                  totalPrice={totalPrice}
-                  productImageURL={cartItem.item.productImageURL}
-                  onQuantityChange={(newQty) =>
-                    updateQuantity(cartItem.item.id, cartItem.item.selectedVariant?.name, newQty)
-                  }
-                  onRemove={() => removeItem(cartItem.item.id, cartItem.item.selectedVariant?.name)}
-                />
-              );
-            })}
+            {items.map((cartItem) => (
+              <CartItem
+                key={`${cartItem.item.id}-${cartItem.item.selectedVariant?.name || "default"}`}
+                cartItem={cartItem}
+                onQuantityChange={(newQty) =>
+                  updateQuantity(cartItem.item.id, cartItem.item.selectedVariant?.name, newQty)
+                }
+                onRemove={() => removeItem(cartItem.item.id, cartItem.item.selectedVariant?.name)}
+              />
+            ))}
 
             {/* Clear Cart Button */}
             <div className="flex justify-end mt-2">

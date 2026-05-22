@@ -1,20 +1,9 @@
 import React from 'react';
+import { CartItemData } from '../store/useCartStore';
 
 export interface CartItemProps {
-  /** The name of the product */
-  productName: string;
-  
-  /** The specific variant of the product selected (e.g. "Size: L", "Color: Blue") */
-  variant?: string;
-  
-  /** The current quantity in the cart */
-  quantity: number;
-  
-  /** The total price for this cart item (quantity * item price) */
-  totalPrice: number;
-  
-  /** Optional URL of the product image */
-  productImageURL?: string;
+  /** The consolidated cart item data containing both product information and quantity */
+  cartItem: CartItemData;
   
   /** Optional callback triggered when the quantity is updated (+ or - clicked) */
   onQuantityChange?: (newQuantity: number) => void;
@@ -24,18 +13,21 @@ export interface CartItemProps {
 }
 
 const CartItem: React.FC<CartItemProps> = ({
-  productName,
-  variant,
-  quantity,
-  totalPrice,
-  productImageURL,
+  cartItem,
   onQuantityChange,
   onRemove,
 }) => {
+  const { item, quantity } = cartItem;
+  const priceModifier = item.selectedVariant?.priceModifier || 0;
+  const totalPrice = (item.basePrice + priceModifier) * quantity;
+  const productImageUrl = item.productImageUrl || item.imageURL;
+  const productName = item.name;
+  const variant = item.selectedVariant?.name;
+
   // Format price helper
   const formattedPrice = new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'SGD',
+    currency: 'USD',
   }).format(totalPrice);
 
   const handleDecrement = () => {
@@ -54,9 +46,9 @@ const CartItem: React.FC<CartItemProps> = ({
     <div className="card card-side bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-all duration-300 w-full max-w-3xl p-3 sm:p-4 gap-3 sm:gap-4 items-center">
       {/* Product Image / Fallback Placeholder */}
       <figure className="w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 bg-base-200 rounded-xl overflow-hidden relative group">
-        {productImageURL ? (
+        {productImageUrl ? (
           <img
-            src={productImageURL}
+            src={productImageUrl}
             alt={productName}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
