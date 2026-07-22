@@ -3,9 +3,11 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     match /{allPaths=**} {
-      // Allow anyone to read and write files less than 5MB
+      // Allow anyone (public) to read/download files
       allow read: if true;
-      allow write: if request.resource.size < 5 * 1024 * 1024;
+      
+      // Allow only logged-in (authenticated) users to upload, update, or delete files
+      allow write: if request.auth != null;
     }
   }
 }

@@ -68,6 +68,24 @@ const DrawerLayout: React.FC<DrawerLayoutProps> = ({ children }) => {
       ),
     },
     {
+      name: "Orders",
+      path: "/orders",
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="my-1.5 inline-block size-6"
+        >
+          <path
+            fillRule="evenodd"
+            d="M7.5 3.375c0-1.036.84-1.875 1.875-1.875h5.25c1.036 0 1.875.84 1.875 1.875v.375h3c1.036 0 1.875.84 1.875 1.875v13.5c0 1.036-.84 1.875-1.875 1.875H4.875A1.875 1.875 0 0 1 3 19.125v-13.5c0-1.036.84-1.875 1.875-1.875h3v-.375ZM9.375 3h5.25a.375.375 0 0 1 .375.375v.375h-6v-.375A.375.375 0 0 1 9.375 3ZM9 9.75a.75.75 0 0 0 0 1.5h6a.75.75 0 0 0 0-1.5H9Zm0 3.75a.75.75 0 0 0 0 1.5h6a.75.75 0 0 0 0-1.5H9Zm0 3.75a.75.75 0 0 0 0 1.5h6a.75.75 0 0 0 0-1.5H9Z"
+            clipRule="evenodd"
+          />
+        </svg>
+      ),
+    },
+    {
       name: "Finance",
       path: "/finance",
       icon: (
