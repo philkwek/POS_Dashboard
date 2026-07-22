@@ -13,8 +13,7 @@ const Cart: React.FC = () => {
   }, 0);
 
   const shipping = subtotal > 50 ? 0 : 4.99;
-  const tax = subtotal * 0.0825; // 8.25% tax
-  const total = subtotal + shipping + tax;
+  const total = subtotal + shipping;
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -127,10 +126,6 @@ const Cart: React.FC = () => {
                     formatCurrency(shipping)
                   )}
                 </span>
-              </div>
-              <div className="flex justify-between text-base-content/65">
-                <span>Estimated Tax (8.25%)</span>
-                <span>{formatCurrency(tax)}</span>
               </div>
 
               <div className="border-t border-base-200 my-2"></div>
