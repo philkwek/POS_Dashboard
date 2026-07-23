@@ -77,7 +77,7 @@ const CheckoutOrderItem: React.FC<CartItemProps> = ({ cartItem }) => {
         <div className="flex items-center justify-end gap-6 sm:gap-8 flex-shrink-0">
           {/* Qty Section */}
           <div className="flex items-center justify-end gap-2 min-w-[4.5rem] sm:min-w-[6rem]">
-            <span className="text-xs font-semibold text-base-content/50 uppercase tracking-wider hidden md:inline">
+            <span className="text-xs font-semibold text-base-content/50 uppercase tracking-wider inline">
               Qty
             </span>
             <span className="text-base sm:text-lg font-extrabold tracking-tight">
@@ -87,7 +87,7 @@ const CheckoutOrderItem: React.FC<CartItemProps> = ({ cartItem }) => {
 
           {/* Price Section */}
           <div className="flex items-center justify-end gap-2 min-w-[6.5rem] sm:min-w-[9rem]">
-            <span className="text-xs font-semibold text-base-content/50 uppercase tracking-wider hidden md:inline">
+            <span className="text-xs font-semibold text-base-content/50 uppercase tracking-wider inline">
               Price
             </span>
             <span className="text-base sm:text-lg font-extrabold tracking-tight">
