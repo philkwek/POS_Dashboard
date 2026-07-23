@@ -1,8 +1,11 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { useCartStore } from "../store/useCartStore";
+import CheckoutOrderItem from "../components/CheckoutOrderItem";
 
 const Checkout: React.FC = () => {
   const navigate = useNavigate();
+  const { items } = useCartStore();
 
   return (
     <div className="min-h-screen bg-base-50 p-4 sm:p-6 md:p-8 flex flex-col items-center">
@@ -26,8 +29,13 @@ const Checkout: React.FC = () => {
         </div>
 
         {/* Content Layout */}
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
-
+        <div className="card flex flex-col bg-base-100 border border-base-200">
+          {items.map((cartItem) => (
+            <CheckoutOrderItem
+              key={`${cartItem.item.id}-${cartItem.item.selectedVariant?.name || "default"}`}
+              cartItem={cartItem}
+            />
+          ))}
         </div>
       </div>
     </div>
