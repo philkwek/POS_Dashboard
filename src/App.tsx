@@ -5,6 +5,7 @@ import DrawerLayout from './components/DrawerLayout';
 import StoreFront from './pages/StoreFront';
 import StoreItemPage from './pages/StoreItemPage';
 import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
 import Finance from './pages/Finance';
 import Inventory from './pages/Inventory';
 import Pos from './pages/Pos';
@@ -21,6 +22,7 @@ function App() {
             <Routes>
               <Route path="/" element={<StoreFront />} /> 
               <Route path="/cart" element={<Cart />} />
+              <Route path="/checkout" element={<Checkout />} />
               <Route path="/:productId" element={<StoreItemPage />} />
               
               {/* Protected Admin Routes */}
