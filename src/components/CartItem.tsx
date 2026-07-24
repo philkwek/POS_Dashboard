@@ -43,7 +43,7 @@ const CartItem: React.FC<CartItemProps> = ({
   };
 
   return (
-    <div className="card card-side bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-all duration-300 w-full max-w-3xl p-3 sm:p-4 gap-3 sm:gap-4 items-center">
+    <div className="card card-side bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-all duration-300 w-full p-3 sm:p-4 gap-3 sm:gap-4 items-center">
       {/* Product Image / Fallback Placeholder */}
       <figure className="w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 bg-base-200 rounded-xl overflow-hidden relative group">
         {productImageUrl ? (
