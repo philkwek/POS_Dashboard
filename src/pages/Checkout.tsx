@@ -3,13 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db, storage } from "../firebase";
-import { PurchasedItemType } from "@pos-dashboard/shared";
+import { PurchasedItemType, OrderItemType } from "@pos-dashboard/shared";
 import { useCartStore } from "../store/useCartStore";
 import CheckoutOrderItem from "../components/CheckoutOrderItem";
+import CheckoutReceipt from "../components/CheckoutReceipt";
 
 const Checkout: React.FC = () => {
   const navigate = useNavigate();
-  const { items } = useCartStore();
+  const { items, clearCart } = useCartStore();
 
   const [name, setName] = React.useState("");
   const [nameTouched, setNameTouched] = React.useState(false);
@@ -20,6 +21,10 @@ const Checkout: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [toastMessage, setToastMessage] = React.useState<string | null>(null);
+  const [completedOrder, setCompletedOrder] = React.useState<{
+    orderRefNum: string;
+    orderData: OrderItemType;
+  } | null>(null);
 
   const getPhoneError = (val: string): string | null => {
     const trimmed = val.trim();
@@ -100,8 +105,26 @@ const Checkout: React.FC = () => {
 
       // 4. Upload data into orders collection in Firebase Firestore
       const ordersRef = collection(db, "orders");
-      await addDoc(ordersRef, newOrderData);
+      const orderReferenceObj = await addDoc(ordersRef, newOrderData);
+      const orderRefNum = orderReferenceObj.id;
 
+      const orderDataForReceipt: OrderItemType = {
+        id: orderRefNum,
+        createdAt: new Date(),
+        customerName: name.trim(),
+        customerNumber: parseInt(phone, 10),
+        purchasedItems,
+        receiptImageUrl: imageKitUrl,
+        status: 0,
+        updatedBy: "-",
+      };
+
+      setCompletedOrder({
+        orderRefNum,
+        orderData: orderDataForReceipt,
+      });
+
+      clearCart();
       setToastMessage("Order placed successfully!");
       setTimeout(() => setToastMessage(null), 4000);
     } catch (err: any) {
@@ -128,6 +151,17 @@ const Checkout: React.FC = () => {
       currency: "SGD",
     }).format(val);
   };
+
+  if (completedOrder) {
+    return (
+      <div className="min-h-screen bg-base-50 p-4 sm:p-6 md:p-8 flex flex-col items-center justify-center">
+        <CheckoutReceipt
+          orderRefNum={completedOrder.orderRefNum}
+          orderData={completedOrder.orderData}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-base-50 p-4 sm:p-6 md:p-8 flex flex-col items-center">
