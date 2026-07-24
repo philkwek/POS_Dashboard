@@ -8,6 +8,33 @@ import { useCartStore } from "../store/useCartStore";
 import CheckoutOrderItem from "../components/CheckoutOrderItem";
 import CheckoutReceipt from "../components/CheckoutReceipt";
 
+function convertFirebaseToImageKit(
+  firebaseUrl: string,
+  imageKitEndpoint: string,
+  transformation?: string
+): string {
+  const marker = "/o/";
+  const markerIndex = firebaseUrl.indexOf(marker);
+
+  if (markerIndex === -1) {
+    throw new Error('Invalid Firebase Storage URL: missing "/o/" segment.');
+  }
+
+  // Extract everything after "/o/" (the path and query parameters)
+  const pathAndQuery = firebaseUrl.substring(markerIndex + marker.length);
+
+  // Normalize the endpoint (ensure no trailing slash)
+  const cleanEndpoint = imageKitEndpoint.replace(/\/+$/, "");
+
+  // Format transformation if provided
+  const formattedTransform = transformation
+    ? `/${transformation.replace(/^\/+/, "").replace(/^tr:/, "")}`
+    : "";
+
+  // Combine elements: endpoint + optional transformation + path/query
+  return `${cleanEndpoint}${formattedTransform}/${pathAndQuery}`;
+}
+
 const Checkout: React.FC = () => {
   const navigate = useNavigate();
   const { items, clearCart } = useCartStore();
@@ -75,11 +102,11 @@ const Checkout: React.FC = () => {
       await uploadBytes(storageRef, file);
       const firebaseUrl = await getDownloadURL(storageRef);
 
-      // 2. Extract Firebase path segment and combine with ImageKit CDN
-      const pathSegment = decodeURIComponent(
-        firebaseUrl.split("/o/")[1]?.split("?")[0] || storagePath
+      // 2. Convert Firebase URL to ImageKit CDN URL using helper function
+      const imageKitUrl = convertFirebaseToImageKit(
+        firebaseUrl,
+        "https://ik.imagekit.io/ql2ik0vus"
       );
-      const imageKitUrl = `https://ik.imagekit.io/ql2ik0vus/${pathSegment}`;
 
       // 3. Map purchased items using PurchasedItemType
       const purchasedItems: PurchasedItemType[] = items.map((cartItem) => ({
