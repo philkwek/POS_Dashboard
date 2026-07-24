@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { OrderItemType } from "@pos-dashboard/shared";
-
+import { useReactToPrint } from "react-to-print";
 export interface CheckoutReceiptProps {
   orderRefNum: string;
   orderData: OrderItemType;
@@ -24,8 +24,14 @@ const CheckoutReceipt: React.FC<CheckoutReceiptProps> = ({
     0
   );
 
+  const componentRef = useRef<HTMLDivElement>(null);
+  const handlePrint = useReactToPrint({
+    contentRef: componentRef,
+    documentTitle: `${orderRefNum}_${orderData.customerNumber}_Receipt`,
+  });
+
   return (
-    <div className="w-full max-w-3xl bg-base-100 border border-base-200 shadow-xl rounded-2xl p-6 sm:p-8 flex flex-col gap-6">
+    <div ref={componentRef} className="w-full max-w-3xl bg-base-100 border border-base-200 shadow-xl rounded-2xl p-6 sm:p-8 flex flex-col gap-6">
       {/* Success Header */}
       <div className="flex flex-col items-center text-center gap-2 pb-4 border-b border-base-200">
         <div className="w-16 h-16 rounded-full bg-success/15 flex items-center justify-center text-success text-3xl font-bold">
@@ -111,7 +117,7 @@ const CheckoutReceipt: React.FC<CheckoutReceiptProps> = ({
           Return to Storefront
         </button>
         <button
-          onClick={() => window.print()}
+          onClick={handlePrint}
           className="btn btn-outline flex-1 font-bold rounded-xl"
         >
           🖨️ Print Receipt
