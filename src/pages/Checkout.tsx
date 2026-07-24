@@ -1,5 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db, storage } from "../firebase";
+import { PurchasedItemType } from "@pos-dashboard/shared";
 import { useCartStore } from "../store/useCartStore";
 import CheckoutOrderItem from "../components/CheckoutOrderItem";
 
@@ -7,9 +11,15 @@ const Checkout: React.FC = () => {
   const navigate = useNavigate();
   const { items } = useCartStore();
 
+  const [name, setName] = React.useState("");
+  const [nameTouched, setNameTouched] = React.useState(false);
   const [phone, setPhone] = React.useState("");
   const [phoneTouched, setPhoneTouched] = React.useState(false);
+  const [file, setFile] = React.useState<File | null>(null);
   const [isSubmitted, setIsSubmitted] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [submitError, setSubmitError] = React.useState<string | null>(null);
+  const [toastMessage, setToastMessage] = React.useState<string | null>(null);
 
   const getPhoneError = (val: string): string | null => {
     const trimmed = val.trim();
@@ -22,14 +32,85 @@ const Checkout: React.FC = () => {
     return null;
   };
 
+  const getNameError = (val: string): string | null => {
+    if (!val.trim()) {
+      return "Full name is required";
+    }
+    return null;
+  };
+
   const phoneError = getPhoneError(phone);
   const showPhoneError = (phoneTouched || isSubmitted) && phoneError !== null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const nameError = getNameError(name);
+  const showNameError = (nameTouched || isSubmitted) && nameError !== null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitted(true);
-    if (phoneError) {
+    setSubmitError(null);
+
+    if (phoneError || nameError) {
       return;
+    }
+
+    if (!file) {
+      setSubmitError("Please upload your PayNow payment receipt screenshot.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setToastMessage(null);
+
+      // 1. Upload image into firebase storage under receipts/ folder
+      const filename = `${Date.now()}_${parseInt(phone, 10)}_${file.name}`;
+      const storagePath = `receipts/${filename}`;
+      const storageRef = ref(storage, storagePath);
+      await uploadBytes(storageRef, file);
+      const firebaseUrl = await getDownloadURL(storageRef);
+
+      // 2. Extract Firebase path segment and combine with ImageKit CDN
+      const pathSegment = decodeURIComponent(
+        firebaseUrl.split("/o/")[1]?.split("?")[0] || storagePath
+      );
+      const imageKitUrl = `https://ik.imagekit.io/ql2ik0vus/${pathSegment}`;
+
+      // 3. Map purchased items using PurchasedItemType
+      const purchasedItems: PurchasedItemType[] = items.map((cartItem) => ({
+        productId: cartItem.item.id,
+        name: cartItem.item.name,
+        quantity: cartItem.quantity,
+        variantId: cartItem.item.selectedVariant?.name || "",
+        cost:
+          cartItem.item.basePrice +
+          (cartItem.item.selectedVariant?.priceModifier || 0),
+      }));
+
+      // Create OrderItemType object
+      const newOrderData = {
+        createdAt: serverTimestamp(),
+        customerName: name.trim(),
+        customerNumber: parseInt(phone, 10),
+        purchasedItems,
+        receiptImageUrl: imageKitUrl,
+        status: 0,
+        updatedBy: "-",
+      };
+
+      // 4. Upload data into orders collection in Firebase Firestore
+      const ordersRef = collection(db, "orders");
+      await addDoc(ordersRef, newOrderData);
+
+      setToastMessage("Order placed successfully!");
+      setTimeout(() => setToastMessage(null), 4000);
+    } catch (err: any) {
+      console.error("Failed to place order:", err);
+      setSubmitError(
+        err?.message || "Failed to place order. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -101,9 +182,15 @@ const Checkout: React.FC = () => {
                   <input
                     type="text"
                     id="name"
-                    className="input w-full"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    onBlur={() => setNameTouched(true)}
+                    className={`input w-full ${showNameError ? "input-error" : ""}`}
                     placeholder="Full Name"
                   />
+                  {showNameError && (
+                    <p className="text-xs text-error mt-1">{nameError}</p>
+                  )}
                 </fieldset>
                 <fieldset className="fieldset w-full">
                   <label className="label" htmlFor="phone">
@@ -172,22 +259,54 @@ const Checkout: React.FC = () => {
                   <legend className="fieldset-legend">
                     Upload PayNow Screenshot
                   </legend>
-                  <input type="file" className="file-input" />
+                  <input
+                    type="file"
+                    className="file-input"
+                    accept="image/*"
+                    onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  />
+                  {file && (
+                    <p className="text-xs text-success mt-1">
+                      Selected: {file.name}
+                    </p>
+                  )}
                 </fieldset>
               </div>
             </div>
           </div>
 
+          {submitError && (
+            <div className="alert alert-error text-white text-sm py-2 px-4 rounded-lg">
+              <span>{submitError}</span>
+            </div>
+          )}
+
           <div>
             <button
               type="submit"
+              disabled={isSubmitting}
               className="btn btn-primary btn-block btn-lg mt-4 rounded-xl font-bold shadow-md shadow-primary/20 hover:scale-[1.02] transition-transform duration-200"
             >
-              Confirm details and place order
+              {isSubmitting ? (
+                <>
+                  <span className="loading loading-spinner"></span>
+                  Processing Order...
+                </>
+              ) : (
+                "Confirm details and place order"
+              )}
             </button>
           </div>
         </form>
       </div>
+
+      {toastMessage && (
+        <div className="toast toast-bottom toast-end z-50">
+          <div className="alert alert-success text-white shadow-lg font-semibold">
+            <span>✓ {toastMessage}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
