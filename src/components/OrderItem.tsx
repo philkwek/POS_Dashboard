@@ -121,7 +121,7 @@ function OrderItem({ item, orderItemOnClick }: OrderItemProp) {
               <p
                 className={
                   item.updatedBy === "-"
-                    ? "text-xs text-base-content/60 font-mono bg-yellow-300 text-yellow-950 px-1 py-0.5 pr-1.5 rounded w-max"
+                    ? "text-xs mt-1 text-base-content/60 font-mono bg-yellow-300 text-yellow-950 px-1 py-0.5 pr-1.5 rounded w-max"
                     : "text-xs text-base-content/60 font-mono"
                 }
               >
