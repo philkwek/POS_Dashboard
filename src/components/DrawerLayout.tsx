@@ -244,7 +244,7 @@ const DrawerLayout: React.FC<DrawerLayoutProps> = ({ children }) => {
             aria-label="close sidebar"
             className="drawer-overlay"
           ></label>
-          <div className="flex min-h-full flex-col items-start border-r-2 border-gray-100 is-drawer-close:w-16 is-drawer-open:w-38">
+          <div className="flex min-h-full flex-col items-start border-r-2 bg-base-100 border-gray-100 dark:border-gray-700 is-drawer-close:w-16 is-drawer-open:w-38">
             <ul className="menu w-full grow">
               {sidebarLinks.map((link) => (
                 <li key={link.name}>
