@@ -121,23 +121,24 @@ const Checkout: React.FC = () => {
             </div>
           </div>
 
-          <div className="basis-1/2 flex flex-col gap-3">
+          <div className="basis-1/2 flex flex-col gap-1">
             <p className="text-xl font-bold">Payment & Receipt Upload</p>
-            <div className="self-center">
-                <img></img>
-                <fieldset className="fieldset">
-                    <legend className="fieldset-legend">Upload PayNow Screenshot</legend>
-                    <input type="file" className="file-input" />
-                </fieldset>
+            <p className="text-xs sm:text-sm text-base-content/50">Please PayNow the listed amount and screenshot the payment confirmation screen for upload below</p>
+            <div className="flex flex-col place-items-center gap-2 mt-2">
+              <img className="rounded-md w-1/2" src="https://firebasestorage.googleapis.com/v0/b/pos-dashboard-zion.firebasestorage.app/o/IMG_0576.JPG?alt=media&token=32dc4e26-d802-4f32-8283-ed2ae57cb0e3"></img>
+              <fieldset className="fieldset">
+                <legend className="fieldset-legend">
+                  Upload PayNow Screenshot
+                </legend>
+                <input type="file" className="file-input" />
+              </fieldset>
             </div>
           </div>
         </div>
         <div>
-            <button
-              className="btn btn-primary btn-block btn-lg mt-4 rounded-xl font-bold shadow-md shadow-primary/20 hover:scale-[1.02] transition-transform duration-200"
-            >
-              Confirm details and place order
-            </button>
+          <button className="btn btn-primary btn-block btn-lg mt-4 rounded-xl font-bold shadow-md shadow-primary/20 hover:scale-[1.02] transition-transform duration-200">
+            Confirm details and place order
+          </button>
         </div>
       </div>
     </div>
