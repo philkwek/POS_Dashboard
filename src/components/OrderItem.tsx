@@ -1,5 +1,5 @@
-import '../App.css';
-import { OrderItemType } from '@pos-dashboard/shared';
+import "../App.css";
+import { OrderItemType } from "@pos-dashboard/shared";
 
 interface OrderItemProp {
   item: OrderItemType;
@@ -7,48 +7,61 @@ interface OrderItemProp {
 }
 
 const formatOrderDate = (dateInput?: any): string => {
-  if (!dateInput) return '';
+  if (!dateInput) return "";
   try {
     let date: Date;
 
-    if (typeof dateInput === 'object' && dateInput !== null) {
-      if (typeof dateInput.toDate === 'function') {
+    if (typeof dateInput === "object" && dateInput !== null) {
+      if (typeof dateInput.toDate === "function") {
         date = dateInput.toDate();
-      } else if ('seconds' in dateInput && typeof dateInput.seconds === 'number') {
+      } else if (
+        "seconds" in dateInput &&
+        typeof dateInput.seconds === "number"
+      ) {
         date = new Date(dateInput.seconds * 1000);
       } else {
-        return '';
+        return "";
       }
-    } else if (typeof dateInput === 'string') {
-      const cleaned = dateInput.replace(/\sat\s/i, ' ').trim();
+    } else if (typeof dateInput === "string") {
+      const cleaned = dateInput.replace(/\sat\s/i, " ").trim();
       date = new Date(cleaned);
-    } else if (typeof dateInput === 'number') {
+    } else if (typeof dateInput === "number") {
       date = new Date(dateInput);
     } else {
-      return '';
+      return "";
     }
 
     if (isNaN(date.getTime())) {
-      return typeof dateInput === 'string' ? dateInput : '';
+      return typeof dateInput === "string" ? dateInput : "";
     }
 
     const monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
     ];
     const month = monthNames[date.getMonth()];
     const day = date.getDate();
     const year = date.getFullYear();
 
     let hours = date.getHours();
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    const ampm = hours >= 12 ? ' PM' : ' AM';
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? " PM" : " AM";
     hours = hours % 12;
     hours = hours ? hours : 12;
 
     return `${month} ${day}, ${year} at ${hours}:${minutes}${ampm}`;
   } catch {
-    return typeof dateInput === 'string' ? dateInput : '';
+    return typeof dateInput === "string" ? dateInput : "";
   }
 };
 
@@ -56,19 +69,35 @@ function OrderItem({ item, orderItemOnClick }: OrderItemProp) {
   const getStatusBadge = (status: number) => {
     switch (status) {
       case 0:
-        return <span className="badge badge-warning text-xs font-semibold">Pending</span>;
+        return (
+          <span className="badge badge-error text-xs font-semibold">
+            Pending
+          </span>
+        );
       case 1:
-        return <span className="badge badge-success text-xs font-semibold">Paid</span>;
+        return (
+          <span className="badge badge-warning text-xs font-semibold">
+            Paid
+          </span>
+        );
       case 2:
-        return <span className="badge badge-info text-xs font-semibold">Collected</span>;
+        return (
+          <span className="badge badge-success text-xs font-semibold">
+            Collected
+          </span>
+        );
       default:
-        return <span className="badge badge-ghost text-xs font-semibold">Unknown ({status})</span>;
+        return (
+          <span className="badge badge-ghost text-xs font-semibold">
+            Unknown ({status})
+          </span>
+        );
     }
   };
 
   const totalCost = item.purchasedItems?.reduce(
     (acc, pItem) => acc + (pItem.cost || 0) * (pItem.quantity || 1),
-    0
+    0,
   );
 
   return (
@@ -76,16 +105,27 @@ function OrderItem({ item, orderItemOnClick }: OrderItemProp) {
       className="card bg-base-100 shadow-md border border-base-200 hover:shadow-lg transition-shadow cursor-pointer w-full h-max"
       onClick={orderItemOnClick}
     >
-      <div className="card-body p-4 sm:p-6 gap-3">
+      <div className="card-body p-4 sm:p-6 gap-2">
         {/* Header: Customer Info & Status */}
         <div className="flex flex-row justify-between items-start gap-2">
           <div>
             <h2 className="card-title text-base sm:text-lg font-bold">
-              {item.customerName || 'Guest Customer'}
+              {item.customerName || "Guest Customer"}
             </h2>
-            {item.customerNumber !== undefined && (
+            {item.id !== undefined && (
               <p className="text-xs text-base-content/60 font-mono">
                 Order #{item.id}
+              </p>
+            )}
+            {item.updatedBy !== undefined && (
+              <p
+                className={
+                  item.updatedBy === "-"
+                    ? "text-xs text-base-content/60 font-mono bg-yellow-300 text-yellow-950 px-1 py-0.5 pr-1.5 rounded w-max"
+                    : "text-xs text-base-content/60 font-mono"
+                }
+              >
+                Checked By: {item.updatedBy}
               </p>
             )}
           </div>
@@ -96,11 +136,17 @@ function OrderItem({ item, orderItemOnClick }: OrderItemProp) {
         {item.purchasedItems && item.purchasedItems.length > 0 && (
           <div className="mt-1 flex flex-col gap-1 border-t border-base-200 pt-2 text-xs sm:text-sm">
             {item.purchasedItems.map((pItem, idx) => (
-              <div key={`${pItem.productId}_${pItem.variantId}` || idx} className="flex justify-between items-center">
+              <div
+                key={`${pItem.productId}_${pItem.variantId}` || idx}
+                className="flex justify-between items-center"
+              >
                 <span>
-                  {pItem.name || 'Product'} <span className="text-xs opacity-70">x{pItem.quantity}</span>
+                  {pItem.name || "Product"}{" "}
+                  <span className="text-xs opacity-70">x{pItem.quantity}</span>
                 </span>
-                <span className="font-mono">${((pItem.cost || 0) * (pItem.quantity || 1)).toFixed(2)}</span>
+                <span className="font-mono">
+                  ${((pItem.cost || 0) * (pItem.quantity || 1)).toFixed(2)}
+                </span>
               </div>
             ))}
           </div>

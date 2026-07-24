@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, doc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { OrderItemType } from '@pos-dashboard/shared';
 import OrderItem from '../components/OrderItem';
+import OrderDetailModal from '../components/OrderDetailModal';
 
 export type OrderStatusFilter = 'ALL' | 0 | 1 | 2;
 
@@ -41,6 +42,7 @@ const Orders: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<OrderStatusFilter>('ALL');
   const [sortDateOrder, setSortDateOrder] = useState<'LATEST' | 'EARLIEST'>('LATEST');
+  const [selectedOrder, setSelectedOrder] = useState<OrderItemType | null>(null);
 
   useEffect(() => {
     const ordersRef = collection(db, 'orders');
@@ -65,6 +67,21 @@ const Orders: React.FC = () => {
 
     return () => unsubscribe();
   }, []);
+
+  const handleStatusChange = async (
+    orderId: string,
+    newStatus: number,
+    updatedByEmail: string
+  ) => {
+    const orderRef = doc(db, 'orders', orderId);
+    await updateDoc(orderRef, {
+      status: newStatus,
+      updatedBy: updatedByEmail,
+    });
+    setSelectedOrder((prev) =>
+      prev ? { ...prev, status: newStatus, updatedBy: updatedByEmail } : null
+    );
+  };
 
   const filteredOrders = orders.filter((order) => {
     if (activeFilter === 'ALL') return true;
@@ -132,10 +149,18 @@ const Orders: React.FC = () => {
             <OrderItem
               key={order.id}
               item={order}
+              orderItemOnClick={() => setSelectedOrder(order)}
             />
           ))}
         </div>
       )}
+
+      {/* Order Detail Floating Card Modal */}
+      <OrderDetailModal
+        order={selectedOrder}
+        onClose={() => setSelectedOrder(null)}
+        onStatusChange={handleStatusChange}
+      />
     </div>
   );
 };
