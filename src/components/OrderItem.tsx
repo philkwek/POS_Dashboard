@@ -73,7 +73,7 @@ function OrderItem({ item, orderItemOnClick }: OrderItemProp) {
 
   return (
     <div
-      className="card bg-base-100 shadow-md border border-base-200 hover:shadow-lg transition-shadow cursor-pointer w-full"
+      className="card bg-base-100 shadow-md border border-base-200 hover:shadow-lg transition-shadow cursor-pointer w-full h-max"
       onClick={orderItemOnClick}
     >
       <div className="card-body p-4 sm:p-6 gap-3">
@@ -85,7 +85,7 @@ function OrderItem({ item, orderItemOnClick }: OrderItemProp) {
             </h2>
             {item.customerNumber !== undefined && (
               <p className="text-xs text-base-content/60 font-mono">
-                Order #{item.customerNumber}
+                Order #{item.id}
               </p>
             )}
           </div>
