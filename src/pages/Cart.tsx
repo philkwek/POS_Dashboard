@@ -137,7 +137,7 @@ const Cart: React.FC = () => {
             </div>
 
             <button
-              onClick={() => alert("Mock checkout process completed! Thank you for your order! 🎉")}
+              onClick={() => navigate("/checkout")}
               className="btn btn-primary btn-block btn-lg mt-4 rounded-xl font-bold shadow-md shadow-primary/20 hover:scale-[1.02] transition-transform duration-200"
             >
               Proceed to Checkout

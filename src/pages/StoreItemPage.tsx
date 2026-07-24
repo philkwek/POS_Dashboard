@@ -122,7 +122,7 @@ function StoreItemPage() {
   return (
     <div className="flex flex-col relative">
       {showToast && (
-        <div className="toast toast-top toast-end z-50 p-4">
+        <div className="toast toast-top toast-end z-50 p-4 pointer-events-none">
           <div className="alert alert-success shadow-lg flex items-center gap-2 rounded-xl bg-success text-success-content border-none">
             <svg
               xmlns="http://www.w3.org/2000/svg"

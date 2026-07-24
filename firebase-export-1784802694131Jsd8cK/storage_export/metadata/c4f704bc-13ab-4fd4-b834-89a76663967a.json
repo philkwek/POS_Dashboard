@@ -1,0 +1,18 @@
+{
+  "name": "receipts/",
+  "bucket": "pos-dashboard-zion.firebasestorage.app",
+  "metageneration": 1,
+  "generation": 1784698649393,
+  "contentType": "application/x-www-form-urlencoded;charset=UTF-8",
+  "storageClass": "STANDARD",
+  "downloadTokens": [
+    "43647d43-9f1c-4ee4-b4f5-e36b72d193ac"
+  ],
+  "etag": "Jtiy5IVNcVB3CLBWW2gd4UFiEAM",
+  "customMetadata": {},
+  "timeCreated": "2026-07-22T05:37:29.393Z",
+  "updated": "2026-07-22T05:37:29.393Z",
+  "size": 0,
+  "md5Hash": "1B2M2Y8AsgTpgAmY7PhCfg==",
+  "crc32c": "0"
+}

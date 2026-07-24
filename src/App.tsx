@@ -5,10 +5,12 @@ import DrawerLayout from './components/DrawerLayout';
 import StoreFront from './pages/StoreFront';
 import StoreItemPage from './pages/StoreItemPage';
 import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
 import Finance from './pages/Finance';
 import Inventory from './pages/Inventory';
 import Pos from './pages/Pos';
 import Admin from './pages/Admin';
+import Orders from './pages/Orders';
 import './App.css'
 
 function App() {
@@ -20,10 +22,12 @@ function App() {
             <Routes>
               <Route path="/" element={<StoreFront />} /> 
               <Route path="/cart" element={<Cart />} />
+              <Route path="/checkout" element={<Checkout />} />
               <Route path="/:productId" element={<StoreItemPage />} />
               
               {/* Protected Admin Routes */}
               <Route element={<ProtectedRoute />}>
+                <Route path="/orders" element={<Orders />} />
                 <Route path="/finance" element={<Finance />} />
                 <Route path="/inventory" element={<Inventory />} />
                 <Route path="/pos" element={<Pos />} />
