@@ -96,7 +96,7 @@ function OrderItem({ item, orderItemOnClick }: OrderItemProp) {
         {item.purchasedItems && item.purchasedItems.length > 0 && (
           <div className="mt-1 flex flex-col gap-1 border-t border-base-200 pt-2 text-xs sm:text-sm">
             {item.purchasedItems.map((pItem, idx) => (
-              <div key={pItem.productId || idx} className="flex justify-between items-center">
+              <div key={`${pItem.productId}_${pItem.variantId}` || idx} className="flex justify-between items-center">
                 <span>
                   {pItem.name || 'Product'} <span className="text-xs opacity-70">x{pItem.quantity}</span>
                 </span>
