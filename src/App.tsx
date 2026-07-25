@@ -7,7 +7,7 @@ import StoreItemPage from './pages/StoreItemPage';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Finance from './pages/Finance';
-import Inventory from './pages/Inventory';
+import Products from './pages/Products';
 import Pos from './pages/Pos';
 import Admin from './pages/Admin';
 import Orders from './pages/Orders';
@@ -29,7 +29,7 @@ function App() {
               <Route element={<ProtectedRoute />}>
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/finance" element={<Finance />} />
-                <Route path="/inventory" element={<Inventory />} />
+                <Route path="/products" element={<Products />} />
                 <Route path="/pos" element={<Pos />} />
                 <Route path="/admin" element={<Admin />} />
               </Route>
