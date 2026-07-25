@@ -20,7 +20,7 @@ const FILTER_OPTIONS: FilterOption[] = [
 ];
 
 const getOrderTimestamp = (dateInput?: any): number => {
-  if (!dateInput) return 0;
+  if (!dateInput) return 0
   if (typeof dateInput === 'object' && dateInput !== null) {
     if (typeof dateInput.toDate === 'function') {
       return dateInput.toDate().getTime();

@@ -46,7 +46,7 @@ function StoreItemPage() {
 
   const onAddToCartOnClick = () => {
     if (!product) return;
-    
+
     const selectedVariant = variants.find((v) => v.name === variantInput);
     addItem({
       item: {
@@ -55,7 +55,7 @@ function StoreItemPage() {
       },
       quantity: quantityInput,
     });
- 
+
     setShowToast(true);
   };
 
@@ -137,7 +137,9 @@ function StoreItemPage() {
                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <span className="font-semibold">Added to cart successfully! 🛒</span>
+            <span className="font-semibold">
+              Added to cart successfully! 🛒
+            </span>
           </div>
         </div>
       )}
@@ -223,6 +225,7 @@ function StoreItemPage() {
                       {variant.priceModifier
                         ? `(+$${variant.priceModifier})`
                         : ""}
+                      {"("}{variant.stock}{`x Left)`}
                     </option>
                   ))}
                 </select>
