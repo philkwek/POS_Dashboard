@@ -130,7 +130,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
           </div>
           <button
             onClick={handleAttemptClose}
-            className="btn btn-sm btn-circle btn-ghost text-base-content/70 hover:bg-base-200 font-bold"
+            className="btn btn-circle btn-ghost text-base-content/70 hover:bg-base-200 font-bold text-lg"
             aria-label="Close modal"
           >
             ✕
