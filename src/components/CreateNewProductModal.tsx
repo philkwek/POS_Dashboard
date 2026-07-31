@@ -55,27 +55,27 @@ const CreateNewProductModal: React.FC<CreateNewProductModal> = ({
           >✕</button>
         </div>
         <form className="flex flex-col gap-2 w-full">
-            <fieldset className="fieldset">
+            <fieldset className="fieldset w-full">
                 <legend className="fieldset-legend">Product Name</legend>
-                <input type="text" className="input" placeholder="Enter Product Name" />
+                <input type="text" className="input w-full" placeholder="Enter Product Name" />
             </fieldset>
-            <fieldset className="fieldset">
+            <fieldset className="fieldset w-full">
                 <legend className="fieldset-legend">Product Description</legend>
-                <textarea className="textarea h-24" placeholder="Enter Description Here"></textarea>
+                <textarea className="textarea w-full h-24" placeholder="Enter Description Here"></textarea>
             </fieldset>
-            <fieldset className="fieldset">
+            <fieldset className="fieldset w-full">
                 <legend className="fieldset-legend">Set Product Base Price</legend>
                 <input
                 type="number"
-                className="input"
+                className="input w-full"
                 placeholder="Enter Base Price"
                 min="0"
                 title="Set Product Base Price"
                 />
             </fieldset>
-            <fieldset className="fieldset">
+            <fieldset className="fieldset w-full">
               <legend className="fieldset-legend">Create Variant of Product</legend>
-              <div className="flex flex-row gap-3 items-start">
+              <div className="flex flex-row gap-3 items-start w-full">
                 <div className="flex flex-col gap-2 sticky top-0">
                   <button
                     type="button"
@@ -97,9 +97,9 @@ const CreateNewProductModal: React.FC<CreateNewProductModal> = ({
                     -
                   </button>
                 </div>
-                <div className="flex-1 flex flex-col gap-3">
+                <div className="flex-1 flex flex-col gap-3 w-full">
                   {variants.length === 0 ? (
-                    <div className="p-3 border border-dashed border-base-300 rounded-lg text-xs text-base-content/60 text-center">
+                    <div className="p-3 border border-dashed border-base-300 rounded-lg text-xs text-base-content/60 text-center w-full">
                       No variants added. Click <span className="font-bold">+</span> to create a variant.
                     </div>
                   ) : (
@@ -116,18 +116,18 @@ const CreateNewProductModal: React.FC<CreateNewProductModal> = ({
                 </div>
               </div>
             </fieldset>
-            <fieldset className="fieldset">
+            <fieldset className="fieldset w-full">
                 <legend className="fieldset-legend">Choose Product Cover Image</legend>
-                <input type="file" className="file-input" accept="image/jpeg, image/png" />
+                <input type="file" className="file-input w-full" accept="image/jpeg, image/png" />
             </fieldset>
-            <fieldset className="fieldset">
+            <fieldset className="fieldset w-full">
                 <legend className="fieldset-legend">Choose Small Product Image</legend>
-                <input type="file" className="file-input" accept="image/jpeg, image/png" />
-                <label className="label">Smaller square image used to display product in shopping cart etc</label>
+                <input type="file" className="file-input w-full" accept="image/jpeg, image/png" />
+                <label className="label text-wrap">Smaller square image used to display product in shopping cart etc</label>
             </fieldset>
-            <fieldset className="fieldset">
+            <fieldset className="fieldset w-full">
                 <legend className="fieldset-legend">Upload Additional Product Images</legend>
-                <input type="file" className="file-input" accept="image/jpeg, image/png" multiple/>
+                <input type="file" className="file-input w-full" accept="image/jpeg, image/png" multiple/>
                 <label className="label">Optional, Upload Multiple, Displayed in Image Carousel</label>
             </fieldset>
             <div className="flex flex-col-reverse gap-2 w-full sm:flex-row">

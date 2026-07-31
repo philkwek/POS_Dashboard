@@ -15,7 +15,7 @@ const CreateNewVariant: React.FC<CreateNewVariantProps> = ({
   onClose,
 }) => {
   return (
-    <div className="card border p-3 flex flex-col gap-2 relative">
+    <div className="card border p-3 flex flex-col gap-2 relative w-full">
       <div className="flex justify-between items-center">
         <h1 className="font-bold">Variant #{index + 1}</h1>
         {onClose && (
@@ -31,22 +31,22 @@ const CreateNewVariant: React.FC<CreateNewVariantProps> = ({
         )}
       </div>
 
-      <fieldset className="fieldset">
+      <fieldset className="fieldset w-full">
         <legend className="fieldset-legend">Set Variant Name</legend>
         <input
           type="text"
-          className="input"
+          className="input w-full"
           placeholder="Enter Variant Name"
           value={variant.name}
           onChange={(e) => onChange({ ...variant, name: e.target.value })}
         />
       </fieldset>
 
-      <fieldset className="fieldset">
+      <fieldset className="fieldset w-full">
         <legend className="fieldset-legend">Set Price Modifier</legend>
         <input
           type="number"
-          className="input"
+          className="input w-full"
           placeholder="Enter Price Difference"
           value={variant.priceModifier || ""}
           onChange={(e) =>
@@ -59,11 +59,11 @@ const CreateNewVariant: React.FC<CreateNewVariantProps> = ({
         <label className="label">Set price difference from product base price</label>
       </fieldset>
 
-      <fieldset className="fieldset">
+      <fieldset className="fieldset w-full">
         <legend className="fieldset-legend">Set Starting Stock Count</legend>
         <input
           type="number"
-          className="input"
+          className="input w-full"
           min="0"
           placeholder="Enter Stock Count"
           value={variant.stock || ""}
