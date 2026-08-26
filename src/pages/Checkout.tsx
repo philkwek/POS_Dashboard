@@ -35,6 +35,9 @@ function convertFirebaseToImageKit(
   return `${cleanEndpoint}${formattedTransform}/${pathAndQuery}`;
 }
 
+const MAX_RECEIPT_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_RECEIPT_TYPES = new Set(["image/jpeg", "image/png"]);
+
 const Checkout: React.FC = () => {
   const navigate = useNavigate();
   const { items, clearCart } = useCartStore();
@@ -91,12 +94,23 @@ const Checkout: React.FC = () => {
       return;
     }
 
+    if (!ALLOWED_RECEIPT_TYPES.has(file.type)) {
+      setSubmitError("Receipt must be a JPEG or PNG image.");
+      return;
+    }
+
+    if (file.size > MAX_RECEIPT_SIZE_BYTES) {
+      setSubmitError("Receipt image must be 5 MB or smaller.");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       setToastMessage(null);
 
       // 1. Upload image into firebase storage under receipts/ folder
-      const filename = `${Date.now()}_${parseInt(phone, 10)}_${file.name}`;
+      const extension = file.type === "image/png" ? "png" : "jpg";
+      const filename = `${crypto.randomUUID()}.${extension}`;
       const storagePath = `receipts/${filename}`;
       const storageRef = ref(storage, storagePath);
       await uploadBytes(storageRef, file);
@@ -323,7 +337,7 @@ const Checkout: React.FC = () => {
                   <input
                     type="file"
                     className="file-input"
-                    accept="image/*"
+                    accept="image/jpeg, image/png"
                     onChange={(e) => setFile(e.target.files?.[0] || null)}
                   />
                   {file && (
