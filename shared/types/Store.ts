@@ -12,6 +12,7 @@ export interface StoreItemType {
 }
 
 export interface StoreItemVariantType {
+    id?: string;
     name: string;
     priceModifier: number;
     stock: number;

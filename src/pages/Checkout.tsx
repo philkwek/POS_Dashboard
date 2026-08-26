@@ -7,33 +7,7 @@ import { PurchasedItemType, OrderItemType } from "@pos-dashboard/shared";
 import { useCartStore } from "../store/useCartStore";
 import CheckoutOrderItem from "../components/CheckoutOrderItem";
 import CheckoutReceipt from "../components/CheckoutReceipt";
-
-function convertFirebaseToImageKit(
-  firebaseUrl: string,
-  imageKitEndpoint: string,
-  transformation?: string
-): string {
-  const marker = "/o/";
-  const markerIndex = firebaseUrl.indexOf(marker);
-
-  if (markerIndex === -1) {
-    throw new Error('Invalid Firebase Storage URL: missing "/o/" segment.');
-  }
-
-  // Extract everything after "/o/" (the path and query parameters)
-  const pathAndQuery = firebaseUrl.substring(markerIndex + marker.length);
-
-  // Normalize the endpoint (ensure no trailing slash)
-  const cleanEndpoint = imageKitEndpoint.replace(/\/+$/, "");
-
-  // Format transformation if provided
-  const formattedTransform = transformation
-    ? `/${transformation.replace(/^\/+/, "").replace(/^tr:/, "")}`
-    : "";
-
-  // Combine elements: endpoint + optional transformation + path/query
-  return `${cleanEndpoint}${formattedTransform}/${pathAndQuery}`;
-}
+import { convertFirebaseToImageKit } from "../imageKit";
 
 const MAX_RECEIPT_SIZE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_RECEIPT_TYPES = new Set(["image/jpeg", "image/png"]);
@@ -119,7 +93,6 @@ const Checkout: React.FC = () => {
       // 2. Convert Firebase URL to ImageKit CDN URL using helper function
       const imageKitUrl = convertFirebaseToImageKit(
         firebaseUrl,
-        "https://ik.imagekit.io/ql2ik0vus"
       );
 
       // 3. Map purchased items using PurchasedItemType
