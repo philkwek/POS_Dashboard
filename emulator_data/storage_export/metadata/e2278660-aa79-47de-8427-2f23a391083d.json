@@ -1,0 +1,18 @@
+{
+  "name": "store_item_images/first_love_cover.jpeg",
+  "bucket": "pos-dashboard-zion.firebasestorage.app",
+  "metageneration": 1,
+  "generation": 1784942714630,
+  "contentType": "image/jpeg",
+  "storageClass": "STANDARD",
+  "downloadTokens": [
+    "80aee939-e4b1-4486-9c5a-e0d44cdd291f"
+  ],
+  "etag": "ZAu+0mI6wySHu4S9LImDNyrsKHM",
+  "customMetadata": {},
+  "timeCreated": "2026-07-25T01:25:14.630Z",
+  "updated": "2026-07-25T01:25:14.630Z",
+  "size": 413421,
+  "md5Hash": "WeU4GegTk/g1CXVlzU2HVA==",
+  "crc32c": "2145798412"
+}

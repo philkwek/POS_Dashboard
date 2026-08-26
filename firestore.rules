@@ -8,14 +8,52 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isValidGuestOrder() {
+      return request.resource.data.keys().hasAll([
+          'createdAt',
+          'customerName',
+          'customerNumber',
+          'purchasedItems',
+          'receiptImageUrl',
+          'status',
+          'updatedBy'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'createdAt',
+          'customerName',
+          'customerNumber',
+          'purchasedItems',
+          'receiptImageUrl',
+          'status',
+          'updatedBy'
+        ])
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.customerName is string
+        && request.resource.data.customerName.size() > 0
+        && request.resource.data.customerName.size() <= 120
+        && request.resource.data.customerNumber is int
+        && request.resource.data.customerNumber >= 10000000
+        && request.resource.data.customerNumber <= 99999999
+        && request.resource.data.purchasedItems is list
+        && request.resource.data.purchasedItems.size() > 0
+        && request.resource.data.purchasedItems.size() <= 50
+        && request.resource.data.receiptImageUrl is string
+        && request.resource.data.receiptImageUrl.size() > 0
+        && request.resource.data.receiptImageUrl.size() <= 2048
+        && request.resource.data.status == 0
+        && request.resource.data.updatedBy == '-';
+    }
+
     // Admins collection: Authenticated users ONLY (CRUD)
     match /admins/{document=**} {
       allow read, write: if isAuthenticated();
     }
 
-    // Orders collection: Authenticated users ONLY (CRUD)
-    match /orders/{document=**} {
-      allow read, write: if isAuthenticated();
+    // Guests may create only validated pending orders. Reads and all other
+    // mutations remain restricted to authenticated administrative users.
+    match /orders/{orderId} {
+      allow create: if isValidGuestOrder();
+      allow read, update, delete: if isAuthenticated();
     }
 
     // Products collection (including subcollections like variants):

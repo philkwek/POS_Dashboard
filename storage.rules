@@ -3,11 +3,32 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     match /{allPaths=**} {
-      // Allow anyone (public) to read/download files
+      // Public reads are retained for the existing storefront and receipt flow.
       allow read: if true;
-      
-      // Allow only logged-in (authenticated) users to upload, update, or delete files
-      allow write: if request.auth != null;
+
+      // Receipt uploads may be created by guests under the receipts directory.
+      allow create: if isValidReceiptUpload() || isValidProductImageUpload();
+
+      // Preserve authenticated administrative file management for now.
+      allow update, delete: if request.auth != null;
+    }
+
+    function isValidReceiptUpload() {
+      return request.resource != null
+        && request.resource.size <= 5 * 1024 * 1024
+        && request.resource.contentType in ['image/jpeg', 'image/png']
+        && request.resource.name.matches('receipts/[A-Za-z0-9_-]+\\.(jpg|jpeg|png)');
+    }
+
+    function isValidProductImageUpload() {
+      return request.auth != null
+        && request.resource != null
+        && request.resource.size <= 5 * 1024 * 1024
+        && request.resource.contentType in ['image/jpeg', 'image/png']
+        && (
+          request.resource.name.matches('products/[A-Za-z0-9_-]+/(cover|small)\\.(jpg|jpeg|png)')
+          || request.resource.name.matches('products/[A-Za-z0-9_-]+/additional/[A-Za-z0-9_-]+\\.(jpg|jpeg|png)')
+        );
     }
   }
 }

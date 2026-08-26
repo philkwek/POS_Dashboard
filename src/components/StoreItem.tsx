@@ -10,7 +10,7 @@ function StoreItem({item, storeItemOnClick}: StoreItemProp) {
 
   return (
     <>
-      <div className="card bg-base-100 shadow-sm cursor-pointer" onClick={storeItemOnClick}>
+      <div className="card bg-base-100 shadow-sm cursor-pointer h-max" onClick={storeItemOnClick}>
         <figure>
             <img src={item.imageURL} loading="lazy" alt={item.name} />
         </figure>

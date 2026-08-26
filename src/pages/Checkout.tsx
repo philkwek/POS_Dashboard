@@ -7,33 +7,10 @@ import { PurchasedItemType, OrderItemType } from "@pos-dashboard/shared";
 import { useCartStore } from "../store/useCartStore";
 import CheckoutOrderItem from "../components/CheckoutOrderItem";
 import CheckoutReceipt from "../components/CheckoutReceipt";
+import { convertFirebaseToImageKit } from "../imageKit";
 
-function convertFirebaseToImageKit(
-  firebaseUrl: string,
-  imageKitEndpoint: string,
-  transformation?: string
-): string {
-  const marker = "/o/";
-  const markerIndex = firebaseUrl.indexOf(marker);
-
-  if (markerIndex === -1) {
-    throw new Error('Invalid Firebase Storage URL: missing "/o/" segment.');
-  }
-
-  // Extract everything after "/o/" (the path and query parameters)
-  const pathAndQuery = firebaseUrl.substring(markerIndex + marker.length);
-
-  // Normalize the endpoint (ensure no trailing slash)
-  const cleanEndpoint = imageKitEndpoint.replace(/\/+$/, "");
-
-  // Format transformation if provided
-  const formattedTransform = transformation
-    ? `/${transformation.replace(/^\/+/, "").replace(/^tr:/, "")}`
-    : "";
-
-  // Combine elements: endpoint + optional transformation + path/query
-  return `${cleanEndpoint}${formattedTransform}/${pathAndQuery}`;
-}
+const MAX_RECEIPT_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_RECEIPT_TYPES = new Set(["image/jpeg", "image/png"]);
 
 const Checkout: React.FC = () => {
   const navigate = useNavigate();
@@ -91,12 +68,23 @@ const Checkout: React.FC = () => {
       return;
     }
 
+    if (!ALLOWED_RECEIPT_TYPES.has(file.type)) {
+      setSubmitError("Receipt must be a JPEG or PNG image.");
+      return;
+    }
+
+    if (file.size > MAX_RECEIPT_SIZE_BYTES) {
+      setSubmitError("Receipt image must be 5 MB or smaller.");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       setToastMessage(null);
 
       // 1. Upload image into firebase storage under receipts/ folder
-      const filename = `${Date.now()}_${parseInt(phone, 10)}_${file.name}`;
+      const extension = file.type === "image/png" ? "png" : "jpg";
+      const filename = `${crypto.randomUUID()}.${extension}`;
       const storagePath = `receipts/${filename}`;
       const storageRef = ref(storage, storagePath);
       await uploadBytes(storageRef, file);
@@ -105,7 +93,6 @@ const Checkout: React.FC = () => {
       // 2. Convert Firebase URL to ImageKit CDN URL using helper function
       const imageKitUrl = convertFirebaseToImageKit(
         firebaseUrl,
-        "https://ik.imagekit.io/ql2ik0vus"
       );
 
       // 3. Map purchased items using PurchasedItemType
@@ -323,7 +310,7 @@ const Checkout: React.FC = () => {
                   <input
                     type="file"
                     className="file-input"
-                    accept="image/*"
+                    accept="image/jpeg, image/png"
                     onChange={(e) => setFile(e.target.files?.[0] || null)}
                   />
                   {file && (
