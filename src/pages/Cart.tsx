@@ -12,8 +12,7 @@ const Cart: React.FC = () => {
     return acc + (cartItem.item.basePrice + priceModifier) * cartItem.quantity;
   }, 0);
 
-  const shipping = subtotal > 50 ? 0 : 4.99;
-  const total = subtotal + shipping;
+  const total = subtotal;
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -116,16 +115,6 @@ const Cart: React.FC = () => {
               <div className="flex justify-between text-base-content/65">
                 <span>Subtotal</span>
                 <span className="font-semibold">{formatCurrency(subtotal)}</span>
-              </div>
-              <div className="flex justify-between text-base-content/65">
-                <span>Shipping</span>
-                <span>
-                  {shipping === 0 ? (
-                    <span className="text-success font-semibold">Free</span>
-                  ) : (
-                    formatCurrency(shipping)
-                  )}
-                </span>
               </div>
 
               <div className="border-t border-base-200 my-2"></div>

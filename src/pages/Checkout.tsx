@@ -156,8 +156,7 @@ const Checkout: React.FC = () => {
     return acc + (cartItem.item.basePrice + priceModifier) * cartItem.quantity;
   }, 0);
 
-  const shipping = subtotal > 50 ? 0 : 4.99;
-  const total = subtotal + shipping;
+  const total = subtotal;
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat("en-US", {
