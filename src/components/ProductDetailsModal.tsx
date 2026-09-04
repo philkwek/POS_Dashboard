@@ -151,11 +151,11 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
               Product ID: {product.id}
             </p>
           </div>
-          <div className="flex shrink-0 gap-2">
+          <div className="flex flex-row shrink-0 gap-2">
             <button
               ref={editButtonRef}
               type="button"
-              className="btn btn-outline btn-sm"
+              className="btn btn-outline btn-sm place-self-center"
               disabled={isLoadingVariants || Boolean(variantError)}
               title={
                 variantError ? "Load variants before editing" : "Edit this product"
