@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { collection, doc, writeBatch } from "firebase/firestore";
-import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { deleteObject, StorageReference } from "firebase/storage";
 import { StoreItemType, StoreItemVariantType } from "@pos-dashboard/shared";
 import CreateNewVariant from "../components/CreateNewVariant";
-import { db, storage } from "../firebase";
-import { convertFirebaseToImageKit } from "../imageKit";
+import { db } from "../firebase";
+import {
+  getProductImageExtension,
+  uploadProductImage,
+} from "../productImages";
 
 interface CreateNewProductModalProps {
   onClose: () => void;
@@ -14,9 +17,6 @@ interface CreateNewProductModalProps {
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 const MAX_ADDITIONAL_IMAGES = 10;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png"]);
-
-const getImageExtension = (file: File) =>
-  file.type === "image/png" ? "png" : "jpg";
 
 const CreateNewProductModal: React.FC<CreateNewProductModalProps> = ({
   onClose,
@@ -110,16 +110,6 @@ const CreateNewProductModal: React.FC<CreateNewProductModalProps> = ({
     return null;
   };
 
-  const uploadImage = async (productId: string, path: string, file: File) => {
-    const storageRef = ref(storage, `products/${productId}/${path}`);
-    await uploadBytes(storageRef, file, { contentType: file.type });
-    const firebaseUrl = await getDownloadURL(storageRef);
-    return {
-      ref: storageRef,
-      url: convertFirebaseToImageKit(firebaseUrl),
-    };
-  };
-
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setSubmitError(null);
@@ -131,17 +121,17 @@ const CreateNewProductModal: React.FC<CreateNewProductModalProps> = ({
     if (!coverImage || !smallImage) return;
 
     setIsSubmitting(true);
-    const uploadedRefs: ReturnType<typeof ref>[] = [];
+    const uploadedRefs: StorageReference[] = [];
     try {
       const productRef = doc(collection(db, "products"));
-      const coverUpload = await uploadImage(productRef.id, `cover.${getImageExtension(coverImage)}`, coverImage);
+      const coverUpload = await uploadProductImage(productRef.id, `cover.${getProductImageExtension(coverImage)}`, coverImage);
       uploadedRefs.push(coverUpload.ref);
-      const smallUpload = await uploadImage(productRef.id, `small.${getImageExtension(smallImage)}`, smallImage);
+      const smallUpload = await uploadProductImage(productRef.id, `small.${getProductImageExtension(smallImage)}`, smallImage);
       uploadedRefs.push(smallUpload.ref);
 
       const additionalUploads: string[] = [];
       for (const [index, image] of additionalImages.entries()) {
-        const imageUpload = await uploadImage(productRef.id, `additional/${index}-${crypto.randomUUID()}.${getImageExtension(image)}`, image);
+        const imageUpload = await uploadProductImage(productRef.id, `additional/${index}-${crypto.randomUUID()}.${getProductImageExtension(image)}`, image);
         uploadedRefs.push(imageUpload.ref);
         additionalUploads.push(imageUpload.url);
       }

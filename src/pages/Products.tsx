@@ -1,11 +1,50 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, doc, getDocs, writeBatch } from "firebase/firestore";
+import { deleteObject, ref, StorageReference } from "firebase/storage";
 import { StoreItemType } from "@pos-dashboard/shared";
 import CreateNewProductModal from "../components/CreateNewProductModal";
-import ProductDetailsModal, {
+import ProductDetailsModal from "../components/ProductDetailsModal";
+import {
   ProductEditPayload,
-} from "../components/ProductDetailsModal";
-import { db } from "../firebase";
+} from "../components/ProductDetailsEditModal";
+import { db, storage } from "../firebase";
+import {
+  getProductImageExtension,
+  getProductImageStoragePath,
+  uploadProductImage,
+} from "../productImages";
+
+const removeUploadedImages = async (uploadedRefs: StorageReference[]) => {
+  const results = await Promise.allSettled(
+    uploadedRefs.map((uploadedRef) => deleteObject(uploadedRef)),
+  );
+  const failures = results.filter((result) => result.status === "rejected");
+  if (failures.length > 0) {
+    console.warn("Failed to roll back some newly uploaded product images:", failures);
+  }
+};
+
+const removeSupersededImages = async (
+  productId: string,
+  urls: string[],
+) => {
+  for (const url of [...new Set(urls.filter(Boolean))]) {
+    const storagePath = getProductImageStoragePath(url, productId);
+    if (!storagePath) {
+      console.warn("Skipped product image cleanup for an unrecognized URL:", url);
+      continue;
+    }
+
+    try {
+      await deleteObject(ref(storage, storagePath));
+    } catch (error) {
+      const errorCode = (error as { code?: string }).code;
+      if (errorCode !== "storage/object-not-found") {
+        console.warn(`Failed to delete superseded image ${storagePath}:`, error);
+      }
+    }
+  }
+};
 
 const Products: React.FC = () => {
   const [products, setProducts] = useState<StoreItemType[]>([]);
@@ -64,8 +103,105 @@ const Products: React.FC = () => {
   }, []);
 
   const handleSaveProductEdits = useCallback(
-    (payload: ProductEditPayload) => {
-      console.log("Product edit payload for Firebase:", payload);
+    async (payload: ProductEditPayload) => {
+      const variantsWithoutIds = payload.productPatch.variants.filter(
+        (variant) => !variant.id,
+      );
+      if (variantsWithoutIds.length > 0) {
+        throw new Error("Every variant must have an ID before it can be saved.");
+      }
+
+      const uploadedRefs: StorageReference[] = [];
+      let imageURL = payload.imageOperations.cover.currentUrl;
+      let productImageUrl = payload.imageOperations.small.currentUrl;
+      const uploadedAdditionalUrls: string[] = [];
+
+      try {
+        const coverFile = payload.imageOperations.cover.replacementFile;
+        if (coverFile) {
+          const upload = await uploadProductImage(
+            payload.productId,
+            `cover/${crypto.randomUUID()}.${getProductImageExtension(coverFile)}`,
+            coverFile,
+          );
+          uploadedRefs.push(upload.ref);
+          imageURL = upload.url;
+        }
+
+        const smallFile = payload.imageOperations.small.replacementFile;
+        if (smallFile) {
+          const upload = await uploadProductImage(
+            payload.productId,
+            `small/${crypto.randomUUID()}.${getProductImageExtension(smallFile)}`,
+            smallFile,
+          );
+          uploadedRefs.push(upload.ref);
+          productImageUrl = upload.url;
+        }
+
+        for (const [index, file] of payload.imageOperations.additional.addedFiles.entries()) {
+          const upload = await uploadProductImage(
+            payload.productId,
+            `additional/${index}-${crypto.randomUUID()}.${getProductImageExtension(file)}`,
+            file,
+          );
+          uploadedRefs.push(upload.ref);
+          uploadedAdditionalUrls.push(upload.url);
+        }
+
+        const additionalImages = [
+          ...payload.imageOperations.additional.retainedUrls,
+          ...uploadedAdditionalUrls,
+        ];
+        const productRef = doc(db, "products", payload.productId);
+        const batch = writeBatch(db);
+
+        batch.update(productRef, {
+          ...payload.productPatch,
+          imageURL,
+          productImageUrl,
+          additionalImages,
+        });
+
+        for (const variant of payload.variantOperations.upsert) {
+          if (!variant.id) {
+            throw new Error("Cannot save a variant without a document ID.");
+          }
+          batch.set(doc(collection(productRef, "variants"), variant.id), variant);
+        }
+        for (const variantId of payload.variantOperations.deleteIds) {
+          batch.delete(doc(collection(productRef, "variants"), variantId));
+        }
+
+        await batch.commit();
+
+        const persistedProduct: StoreItemType = {
+          id: payload.productId,
+          ...payload.productPatch,
+          imageURL,
+          productImageUrl,
+          additionalImages,
+        };
+        setProducts((currentProducts) =>
+          currentProducts.map((product) =>
+            product.id === payload.productId ? persistedProduct : product,
+          ),
+        );
+      } catch (error) {
+        await removeUploadedImages(uploadedRefs);
+        throw error;
+      }
+
+      const supersededUrls = [
+        ...(payload.imageOperations.cover.replacementFile
+          ? [payload.imageOperations.cover.currentUrl]
+          : []),
+        ...(payload.imageOperations.small.replacementFile
+          ? [payload.imageOperations.small.currentUrl]
+          : []),
+        ...payload.imageOperations.additional.deletedUrls,
+      ];
+      await removeSupersededImages(payload.productId, supersededUrls);
     },
     [],
   );

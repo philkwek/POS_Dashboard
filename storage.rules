@@ -27,6 +27,7 @@ service firebase.storage {
         && request.resource.contentType in ['image/jpeg', 'image/png']
         && (
           request.resource.name.matches('products/[A-Za-z0-9_-]+/(cover|small)\\.(jpg|jpeg|png)')
+          || request.resource.name.matches('products/[A-Za-z0-9_-]+/(cover|small)/[A-Za-z0-9_-]+\\.(jpg|jpeg|png)')
           || request.resource.name.matches('products/[A-Za-z0-9_-]+/additional/[A-Za-z0-9_-]+\\.(jpg|jpeg|png)')
         );
     }
