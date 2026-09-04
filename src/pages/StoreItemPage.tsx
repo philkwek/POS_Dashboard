@@ -209,7 +209,7 @@ function StoreItemPage() {
             <div className="flex flex-col gap-2 basis-1/2">
               <h1 className="card-title text-xl uppercase">{product.name}</h1>
               <h1 className="text-base">{"$" + product.basePrice}</h1>
-              <p>{product.description}</p>
+              <p className="whitespace-pre-wrap">{product.description}</p>
               {variants.length > 0 && (
                 <select
                   className="select mt-1 select-bordered w-full justify-self-stretch"

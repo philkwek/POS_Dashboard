@@ -16,7 +16,7 @@ function StoreItem({item, storeItemOnClick}: StoreItemProp) {
         </figure>
         <div className="card-body">
             <h2 className="card-title">{item.name}</h2>
-            <p>{item.description}</p>
+            <p className="whitespace-pre-wrap">{item.description}</p>
         </div>
       </div>
     </>
