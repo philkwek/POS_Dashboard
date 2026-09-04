@@ -1,14 +1,19 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { StoreItemType } from "@pos-dashboard/shared";
 import CreateNewProductModal from "../components/CreateNewProductModal";
+import ProductDetailsModal from "../components/ProductDetailsModal";
 import { db } from "../firebase";
 
 const Products: React.FC = () => {
   const [products, setProducts] = useState<StoreItemType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<StoreItemType | null>(
+    null,
+  );
+  const selectedProductTriggerRef = useRef<HTMLElement | null>(null);
 
   const fetchProducts = useCallback(async () => {
     setIsLoading(true);
@@ -40,6 +45,22 @@ const Products: React.FC = () => {
     setProducts((currentProducts) => [product, ...currentProducts]);
   };
 
+  const handleOpenProductDetails = (
+    product: StoreItemType,
+    trigger: HTMLElement,
+  ) => {
+    selectedProductTriggerRef.current = trigger;
+    setSelectedProduct(product);
+  };
+
+  const handleCloseProductDetails = useCallback(() => {
+    setSelectedProduct(null);
+    window.requestAnimationFrame(() => {
+      selectedProductTriggerRef.current?.focus();
+      selectedProductTriggerRef.current = null;
+    });
+  }, []);
+
   return (
     <div className="flex h-full w-full flex-col gap-4 p-5 pt-1">
       <div>
@@ -54,7 +75,7 @@ const Products: React.FC = () => {
           Edit Products
         </button>
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => setIsCreateModalOpen(true)}
           className="btn btn-outline"
         >
           + Create New Product
@@ -81,7 +102,19 @@ const Products: React.FC = () => {
           {products.map((product) => (
             <article
               key={product.id}
-              className="card border border-base-200 bg-base-100 shadow-sm"
+              className="card cursor-pointer border border-base-200 bg-base-100 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              role="button"
+              tabIndex={0}
+              aria-label={`View details for ${product.name}`}
+              aria-haspopup="dialog"
+              onClick={(event) =>
+                handleOpenProductDetails(product, event.currentTarget)
+              }
+              onKeyDown={(event) => {
+                if (event.key !== "Enter" && event.key !== " ") return;
+                event.preventDefault();
+                handleOpenProductDetails(product, event.currentTarget);
+              }}
             >
               <figure className="aspect-video bg-base-200">
                 <img
@@ -111,10 +144,17 @@ const Products: React.FC = () => {
         </div>
       )}
 
-      {isModalOpen && (
+      {isCreateModalOpen && (
         <CreateNewProductModal
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => setIsCreateModalOpen(false)}
           onCreated={handleProductCreated}
+        />
+      )}
+
+      {selectedProduct && (
+        <ProductDetailsModal
+          product={selectedProduct}
+          onClose={handleCloseProductDetails}
         />
       )}
     </div>
