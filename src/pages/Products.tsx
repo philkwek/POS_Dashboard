@@ -2,7 +2,9 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { StoreItemType } from "@pos-dashboard/shared";
 import CreateNewProductModal from "../components/CreateNewProductModal";
-import ProductDetailsModal from "../components/ProductDetailsModal";
+import ProductDetailsModal, {
+  ProductEditPayload,
+} from "../components/ProductDetailsModal";
 import { db } from "../firebase";
 
 const Products: React.FC = () => {
@@ -60,6 +62,13 @@ const Products: React.FC = () => {
       selectedProductTriggerRef.current = null;
     });
   }, []);
+
+  const handleSaveProductEdits = useCallback(
+    (payload: ProductEditPayload) => {
+      console.log("Product edit payload for Firebase:", payload);
+    },
+    [],
+  );
 
   return (
     <div className="flex h-full w-full flex-col gap-4 p-5 pt-1">
@@ -155,6 +164,7 @@ const Products: React.FC = () => {
         <ProductDetailsModal
           product={selectedProduct}
           onClose={handleCloseProductDetails}
+          onSave={handleSaveProductEdits}
         />
       )}
     </div>

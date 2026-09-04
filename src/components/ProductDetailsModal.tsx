@@ -1,41 +1,81 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { StoreItemType, StoreItemVariantType } from "@pos-dashboard/shared";
+import CreateNewVariant from "./CreateNewVariant";
 import { db } from "../firebase";
+
+export interface ProductEditPayload {
+  productId: string;
+  productPatch: {
+    name: string;
+    description: string;
+    basePrice: number;
+    isActive: boolean;
+    attributes: string[];
+    variants: StoreItemVariantType[];
+  };
+  variantOperations: {
+    upsert: StoreItemVariantType[];
+    deleteIds: string[];
+  };
+  imageOperations: {
+    cover: { currentUrl: string; replacementFile: File | null };
+    small: { currentUrl: string; replacementFile: File | null };
+    additional: {
+      retainedUrls: string[];
+      addedFiles: File[];
+      deletedUrls: string[];
+    };
+  };
+}
 
 interface ProductDetailsModalProps {
   product: StoreItemType;
   onClose: () => void;
+  onSave: (payload: ProductEditPayload) => void | Promise<void>;
 }
 
-interface ProductImageProps {
-  src?: string;
-  alt: string;
-  className?: string;
+interface DraftFields {
+  name: string;
+  description: string;
+  basePrice: string;
+  isActive: boolean;
+  attributes: string[];
 }
+
+interface NewImage {
+  id: string;
+  file: File;
+}
+
+type DiscardAction = "close" | "cancel-edit";
+
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+const MAX_ADDITIONAL_IMAGES = 10;
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png"]);
 
 const formatCurrency = (value: number) =>
   Number.isFinite(value) ? `$${value.toFixed(2)}` : "—";
 
-const formatPriceModifier = (value: number) => {
+const formatModifier = (value: number) => {
   if (!Number.isFinite(value)) return "—";
   if (value > 0) return `+$${value.toFixed(2)}`;
   if (value < 0) return `-$${Math.abs(value).toFixed(2)}`;
   return "$0.00";
 };
 
-const ProductImage: React.FC<ProductImageProps> = ({
-  src,
-  alt,
-  className = "h-48 w-full",
-}) => {
-  const [hasError, setHasError] = useState(false);
+const fileSignature = (file: File | null) =>
+  file ? `${file.name}:${file.size}:${file.lastModified}` : null;
 
-  useEffect(() => {
-    setHasError(false);
-  }, [src]);
+const ProductImage: React.FC<{
+  src?: string;
+  alt: string;
+  className?: string;
+}> = ({ src, alt, className = "aspect-video w-full" }) => {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [src]);
 
-  if (!src || hasError) {
+  if (!src || failed) {
     return (
       <div
         className={`${className} flex items-center justify-center bg-base-200 text-sm text-base-content/50`}
@@ -46,42 +86,61 @@ const ProductImage: React.FC<ProductImageProps> = ({
       </div>
     );
   }
-
   return (
     <img
       src={src}
       alt={alt}
       className={`${className} bg-base-200 object-contain`}
-      onError={() => setHasError(true)}
+      onError={() => setFailed(true)}
     />
   );
+};
+
+const FilePreview: React.FC<{
+  file: File;
+  alt: string;
+  className?: string;
+}> = ({ file, alt, className }) => {
+  const [url, setUrl] = useState<string>();
+  useEffect(() => {
+    const nextUrl = URL.createObjectURL(file);
+    setUrl(nextUrl);
+    return () => URL.revokeObjectURL(nextUrl);
+  }, [file]);
+  return <ProductImage src={url} alt={alt} className={className} />;
 };
 
 const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
   product,
   onClose,
+  onSave,
 }) => {
   const [variants, setVariants] = useState<StoreItemVariantType[]>([]);
   const [isLoadingVariants, setIsLoadingVariants] = useState(true);
   const [variantError, setVariantError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState<DraftFields | null>(null);
+  const [draftVariants, setDraftVariants] = useState<StoreItemVariantType[]>([]);
+  const [coverReplacement, setCoverReplacement] = useState<File | null>(null);
+  const [smallReplacement, setSmallReplacement] = useState<File | null>(null);
+  const [retainedImages, setRetainedImages] = useState<string[]>([]);
+  const [newImages, setNewImages] = useState<NewImage[]>([]);
+  const [baseline, setBaseline] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
+  const [discardAction, setDiscardAction] = useState<DiscardAction | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const fetchVariants = useCallback(async () => {
     setIsLoadingVariants(true);
     setVariantError(null);
-
     try {
-      const snapshot = await getDocs(
-        collection(db, "products", product.id, "variants"),
-      );
+      const snapshot = await getDocs(collection(db, "products", product.id, "variants"));
       setVariants(
-        snapshot.docs.map(
-          (variantDoc) =>
-            ({
-              id: variantDoc.id,
-              ...variantDoc.data(),
-            }) as StoreItemVariantType,
-        ),
+        snapshot.docs.map((variantDoc) => ({
+          id: variantDoc.id,
+          ...variantDoc.data(),
+        })) as StoreItemVariantType[],
       );
     } catch (error) {
       console.error("Failed to load product variants:", error);
@@ -91,233 +150,257 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
     }
   }, [product.id]);
 
-  useEffect(() => {
-    void fetchVariants();
-  }, [fetchVariants]);
+  useEffect(() => void fetchVariants(), [fetchVariants]);
+
+  const draftSignature = useMemo(
+    () =>
+      JSON.stringify({
+        draft,
+        variants: draftVariants,
+        cover: fileSignature(coverReplacement),
+        small: fileSignature(smallReplacement),
+        retainedImages,
+        newImages: newImages.map(({ id, file }) => ({ id, file: fileSignature(file) })),
+      }),
+    [coverReplacement, draft, draftVariants, newImages, retainedImages, smallReplacement],
+  );
+  const isDirty = isEditing && draftSignature !== baseline;
+
+  const leaveEditMode = useCallback(() => {
+    setIsEditing(false);
+    setDraft(null);
+    setDraftVariants([]);
+    setCoverReplacement(null);
+    setSmallReplacement(null);
+    setRetainedImages([]);
+    setNewImages([]);
+    setFormError(null);
+    setBaseline("");
+  }, []);
+
+  const attemptClose = useCallback(() => {
+    if (isSaving) return;
+    if (isDirty) setDiscardAction("close");
+    else onClose();
+  }, [isDirty, isSaving, onClose]);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     closeButtonRef.current?.focus();
-
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key !== "Escape") return;
+      if (discardAction) setDiscardAction(null);
+      else attemptClose();
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = previousOverflow;
     };
-  }, [onClose]);
+  }, [attemptClose, discardAction]);
 
-  const attributes = product.attributes || [];
-  const additionalImages = product.additionalImages || [];
+  const startEditing = () => {
+    const nextDraft: DraftFields = {
+      name: product.name,
+      description: product.description,
+      basePrice: String(product.basePrice),
+      isActive: product.isActive,
+      attributes: (product.attributes || []).map(String),
+    };
+    const nextVariants = variants.map((variant) => ({ ...variant }));
+    const nextImages = [...(product.additionalImages || [])];
+    setDraft(nextDraft);
+    setDraftVariants(nextVariants);
+    setRetainedImages(nextImages);
+    setCoverReplacement(null);
+    setSmallReplacement(null);
+    setNewImages([]);
+    setFormError(null);
+    setBaseline(
+      JSON.stringify({
+        draft: nextDraft,
+        variants: nextVariants,
+        cover: null,
+        small: null,
+        retainedImages: nextImages,
+        newImages: [],
+      }),
+    );
+    setIsEditing(true);
+  };
+
+  const validate = () => {
+    if (!draft) return "Product details are unavailable.";
+    const name = draft.name.trim();
+    const description = draft.description.trim();
+    const basePrice = Number(draft.basePrice);
+    if (!name || name.length > 120) return "Product name is required and must be 120 characters or fewer.";
+    if (!description || description.length > 2000) return "Product description is required and must be 2,000 characters or fewer.";
+    if (!draft.basePrice.trim() || !Number.isFinite(basePrice) || basePrice < 0) return "Base price must be a valid non-negative number.";
+    if (!product.imageURL && !coverReplacement) return "A cover image is required.";
+    if (!product.productImageUrl && !smallReplacement) return "A small product image is required.";
+    for (const [file, label] of [[coverReplacement, "Cover image"], [smallReplacement, "Small product image"]] as const) {
+      if (file && !ALLOWED_IMAGE_TYPES.has(file.type)) return `${label} must be a JPEG or PNG image.`;
+      if (file && file.size > MAX_IMAGE_SIZE_BYTES) return `${label} must be 5 MB or smaller.`;
+    }
+    if (retainedImages.length + newImages.length > MAX_ADDITIONAL_IMAGES) return `You can keep or upload up to ${MAX_ADDITIONAL_IMAGES} additional images.`;
+    for (const { file } of newImages) {
+      if (!ALLOWED_IMAGE_TYPES.has(file.type)) return "Additional images must be JPEG or PNG files.";
+      if (file.size > MAX_IMAGE_SIZE_BYTES) return "Additional images must be 5 MB or smaller.";
+    }
+    const names = new Set<string>();
+    for (const variant of draftVariants) {
+      const variantName = variant.name.trim();
+      if (!variantName || variantName.length > 80) return "Every variant needs a name of 80 characters or fewer.";
+      if (names.has(variantName.toLowerCase())) return "Variant names must be unique within the product.";
+      names.add(variantName.toLowerCase());
+      if (!Number.isFinite(variant.priceModifier)) return `Price modifier for ${variantName} must be valid.`;
+      if (!Number.isInteger(variant.stock) || variant.stock < 0) return `Stock for ${variantName} must be a non-negative integer.`;
+    }
+    return null;
+  };
+
+  const buildPayload = (): ProductEditPayload => {
+    if (!draft) throw new Error("Missing product draft");
+    const normalizedVariants = draftVariants.map((variant) => ({
+      ...variant,
+      name: variant.name.trim(),
+    }));
+    const originals = new Map(variants.map((variant) => [variant.id, variant]));
+    const currentIds = new Set(normalizedVariants.map((variant) => variant.id));
+    const upsert = normalizedVariants.filter((variant) => {
+      const original = originals.get(variant.id);
+      return !original || original.name !== variant.name || original.priceModifier !== variant.priceModifier || original.stock !== variant.stock;
+    });
+    return {
+      productId: product.id,
+      productPatch: {
+        name: draft.name.trim(),
+        description: draft.description.trim(),
+        basePrice: Number(draft.basePrice),
+        isActive: draft.isActive,
+        attributes: draft.attributes.map((value) => value.trim()).filter(Boolean),
+        variants: normalizedVariants,
+      },
+      variantOperations: {
+        upsert,
+        deleteIds: variants.map(({ id }) => id).filter((id): id is string => Boolean(id && !currentIds.has(id))),
+      },
+      imageOperations: {
+        cover: { currentUrl: product.imageURL, replacementFile: coverReplacement },
+        small: { currentUrl: product.productImageUrl, replacementFile: smallReplacement },
+        additional: {
+          retainedUrls: retainedImages,
+          addedFiles: newImages.map(({ file }) => file),
+          deletedUrls: (product.additionalImages || []).filter((url) => !retainedImages.includes(url)),
+        },
+      },
+    };
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!isEditing || !isDirty || isSaving) return;
+    const error = validate();
+    if (error) {
+      setFormError(error);
+      return;
+    }
+    setIsSaving(true);
+    setFormError(null);
+    try {
+      await onSave(buildPayload());
+      onClose();
+    } catch (error) {
+      console.error("Failed to process product edit payload:", error);
+      setFormError("Failed to process product edits. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const confirmDiscard = () => {
+    const action = discardAction;
+    setDiscardAction(null);
+    if (action === "close") onClose();
+    if (action === "cancel-edit") leaveEditMode();
+  };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
-      onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
-    >
-      <div
-        className="relative flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-base-200 bg-base-100 shadow-2xl"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="product-details-title"
-        aria-describedby="product-details-description"
-      >
-        <div className="flex items-start justify-between border-b border-base-200 p-6 pb-3">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={(event) => { if (event.target === event.currentTarget) attemptClose(); }}>
+      <form className="relative flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-base-200 bg-base-100 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="product-details-title" onSubmit={handleSubmit}>
+        <header className="flex items-start justify-between gap-3 border-b border-base-200 p-6 pb-3">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h2
-                id="product-details-title"
-                className="truncate text-xl font-extrabold text-base-content sm:text-2xl"
-              >
-                {product.name}
-              </h2>
-              <span
-                className={`badge ${product.isActive ? "badge-success" : "badge-ghost"}`}
-              >
-                {product.isActive ? "Active" : "Inactive"}
-              </span>
+              <h2 id="product-details-title" className="truncate text-xl font-extrabold sm:text-2xl">{draft?.name || product.name}</h2>
+              <span className={`badge ${(draft?.isActive ?? product.isActive) ? "badge-success" : "badge-ghost"}`}>{(draft?.isActive ?? product.isActive) ? "Active" : "Inactive"}</span>
+              {isEditing && <span className="badge badge-warning badge-outline">Editing</span>}
             </div>
-            <p className="mt-1 break-all font-mono text-xs text-base-content/50">
-              Product ID: {product.id}
-            </p>
+            <p className="mt-1 break-all font-mono text-xs text-base-content/50">Product ID: {product.id}</p>
           </div>
-          <button
-            ref={closeButtonRef}
-            type="button"
-            onClick={onClose}
-            className="btn btn-circle btn-ghost text-lg font-bold"
-            aria-label="Close product details"
-          >
-            ✕
-          </button>
-        </div>
+          <div className="flex shrink-0 gap-2">
+            {!isEditing && <button type="button" className="btn btn-outline btn-sm" disabled={isLoadingVariants || Boolean(variantError)} title={variantError ? "Load variants before editing" : "Edit this product"} onClick={startEditing}>Edit Product</button>}
+            <button ref={closeButtonRef} type="button" className="btn btn-circle btn-ghost text-lg font-bold" disabled={isSaving} aria-label="Close product details" onClick={attemptClose}>✕</button>
+          </div>
+        </header>
 
-        <div className="flex flex-col gap-6 overflow-y-auto p-6">
-          <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="overflow-hidden rounded-xl border border-base-200">
-              <div className="border-b border-base-200 bg-base-200/50 px-3 py-2 text-xs font-bold uppercase tracking-wide text-base-content/60">
-                Cover Image
-              </div>
-              <ProductImage
-                src={product.imageURL}
-                alt={`${product.name} cover`}
-                className="aspect-video w-full"
-              />
-            </div>
-            <div className="overflow-hidden rounded-xl border border-base-200">
-              <div className="border-b border-base-200 bg-base-200/50 px-3 py-2 text-xs font-bold uppercase tracking-wide text-base-content/60">
-                Small / Cart Image
-              </div>
-              <ProductImage
-                src={product.productImageUrl}
-                alt={`${product.name} small product`}
-                className="aspect-video w-full"
-              />
-            </div>
-          </section>
+        <main className="flex flex-col gap-6 overflow-y-auto p-6">
+          {isEditing && draft ? (
+            <>
+              <section className="grid grid-cols-1 gap-3 rounded-xl bg-base-200/40 p-4 sm:grid-cols-2">
+                <label className="fieldset"><span className="fieldset-legend">Product Name</span><input className="input w-full" value={draft.name} maxLength={120} required onChange={(e) => { setDraft({ ...draft, name: e.target.value }); setFormError(null); }} /></label>
+                <label className="fieldset"><span className="fieldset-legend">Base Price</span><input type="number" className="input w-full" value={draft.basePrice} min="0" step="0.01" required onChange={(e) => { setDraft({ ...draft, basePrice: e.target.value }); setFormError(null); }} /></label>
+                <label className="fieldset sm:col-span-2"><span className="fieldset-legend">Description</span><textarea className="textarea h-28 w-full" value={draft.description} maxLength={2000} required onChange={(e) => { setDraft({ ...draft, description: e.target.value }); setFormError(null); }} /></label>
+                <label className="flex cursor-pointer items-center justify-between rounded-lg border border-base-300 bg-base-100 p-3 sm:col-span-2"><span><span className="block text-sm font-bold">Active Product</span><span className="text-xs text-base-content/50">Controls product availability.</span></span><input type="checkbox" className="toggle toggle-success" checked={draft.isActive} onChange={(e) => setDraft({ ...draft, isActive: e.target.checked })} /></label>
+              </section>
 
-          <section className="grid grid-cols-1 gap-4 rounded-xl bg-base-200/40 p-4 sm:grid-cols-3">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-base-content/50">
-                Base Price
-              </p>
-              <p className="mt-1 text-xl font-bold">
-                {formatCurrency(product.basePrice)}
-              </p>
-            </div>
-            <div className="sm:col-span-2">
-              <p className="text-xs font-bold uppercase tracking-wide text-base-content/50">
-                Description
-              </p>
-              <p
-                id="product-details-description"
-                className="mt-1 whitespace-pre-wrap text-sm text-base-content/80"
-              >
-                {product.description || "No description provided."}
-              </p>
-            </div>
-          </section>
+              <section className="flex flex-col gap-3">
+                <h3 className="font-bold">Product Images</h3>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {[
+                    { label: "Cover Image", current: product.imageURL, file: coverReplacement, setFile: setCoverReplacement },
+                    { label: "Small / Cart Image", current: product.productImageUrl, file: smallReplacement, setFile: setSmallReplacement },
+                  ].map(({ label, current, file, setFile }) => (
+                    <div key={label} className="overflow-hidden rounded-xl border border-base-200">
+                      <div className="border-b border-base-200 bg-base-200/50 px-3 py-2 text-xs font-bold uppercase">{label}</div>
+                      {file ? <FilePreview file={file} alt={`${label} replacement`} /> : <ProductImage src={current} alt={`${product.name} ${label}`} />}
+                      <div className="flex gap-2 p-3"><label className="btn btn-outline btn-sm">Replace<input type="file" className="hidden" accept="image/jpeg,image/png" onChange={(e) => { setFile(e.target.files?.[0] || null); e.target.value = ""; }} /></label>{file && <button type="button" className="btn btn-ghost btn-sm" onClick={() => setFile(null)}>Undo</button>}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center justify-between gap-2"><div><h4 className="text-sm font-bold">Additional Images</h4><p className="text-xs text-base-content/50">{retainedImages.length + newImages.length}/{MAX_ADDITIONAL_IMAGES} images</p></div><label className="btn btn-outline btn-sm">+ Add Photos<input type="file" className="hidden" accept="image/jpeg,image/png" multiple onChange={(e) => { setNewImages([...newImages, ...Array.from(e.target.files || []).map((file) => ({ id: crypto.randomUUID(), file }))]); e.target.value = ""; }} /></label></div>
+                {retainedImages.length + newImages.length === 0 ? <p className="rounded-lg border border-dashed border-base-300 p-3 text-sm text-base-content/50">No additional images.</p> : <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {retainedImages.map((url, index) => <div key={url} className="relative overflow-hidden rounded-xl border"><ProductImage src={url} alt={`Additional image ${index + 1}`} className="aspect-square w-full" /><button type="button" className="btn btn-circle btn-error btn-sm absolute right-2 top-2 text-white" aria-label={`Delete additional image ${index + 1}`} onClick={() => setRetainedImages(retainedImages.filter((item) => item !== url))}>✕</button></div>)}
+                  {newImages.map(({ id, file }, index) => <div key={id} className="relative overflow-hidden rounded-xl border border-primary/40"><FilePreview file={file} alt={`New additional image ${index + 1}`} className="aspect-square w-full" /><span className="badge badge-primary absolute left-2 top-2">New</span><button type="button" className="btn btn-circle btn-error btn-sm absolute right-2 top-2 text-white" aria-label={`Remove new image ${index + 1}`} onClick={() => setNewImages(newImages.filter((image) => image.id !== id))}>✕</button></div>)}
+                </div>}
+              </section>
 
-          <section className="flex flex-col gap-2">
-            <h3 className="font-bold text-base-content">Attributes</h3>
-            {attributes.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {attributes.map((attribute, index) => (
-                  <span key={`${String(attribute)}-${index}`} className="badge badge-outline">
-                    {String(attribute)}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <p className="rounded-lg border border-dashed border-base-300 p-3 text-sm text-base-content/50">
-                No attributes.
-              </p>
-            )}
-          </section>
+              <section className="flex flex-col gap-3">
+                <div className="flex items-center justify-between"><h3 className="font-bold">Attributes</h3><button type="button" className="btn btn-outline btn-sm" onClick={() => setDraft({ ...draft, attributes: [...draft.attributes, ""] })}>+ Add Attribute</button></div>
+                {draft.attributes.length === 0 ? <p className="rounded-lg border border-dashed border-base-300 p-3 text-sm text-base-content/50">No attributes.</p> : draft.attributes.map((attribute, index) => <div key={index} className="flex gap-2"><input className="input w-full" value={attribute} placeholder={`Attribute ${index + 1}`} onChange={(e) => setDraft({ ...draft, attributes: draft.attributes.map((value, i) => i === index ? e.target.value : value) })} /><button type="button" className="btn btn-ghost text-error" onClick={() => setDraft({ ...draft, attributes: draft.attributes.filter((_, i) => i !== index) })}>Remove</button></div>)}
+              </section>
 
-          <section className="flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="font-bold text-base-content">Variants &amp; Stock</h3>
-              {!isLoadingVariants && !variantError && (
-                <span className="text-xs text-base-content/50">
-                  {variants.length} variant(s)
-                </span>
-              )}
-            </div>
+              <section className="flex flex-col gap-3">
+                <div className="flex items-center justify-between"><div><h3 className="font-bold">Variants &amp; Stock</h3><p className="text-xs text-base-content/50">{draftVariants.length} variant(s)</p></div><button type="button" className="btn btn-outline btn-sm" onClick={() => setDraftVariants([...draftVariants, { id: crypto.randomUUID(), name: "", priceModifier: 0, stock: 0 }])}>+ Add Variant</button></div>
+                {draftVariants.length === 0 ? <p className="rounded-lg border border-dashed border-base-300 p-3 text-sm text-base-content/50">No variants.</p> : <div className="grid grid-cols-1 gap-3 md:grid-cols-2">{draftVariants.map((variant, index) => <CreateNewVariant key={variant.id} index={index} variant={variant} onChange={(updated) => setDraftVariants(draftVariants.map((item) => item.id === variant.id ? updated : item))} onClose={() => setDraftVariants(draftVariants.filter((item) => item.id !== variant.id))} />)}</div>}
+              </section>
+            </>
+          ) : (
+            <>
+              <section className="grid grid-cols-1 gap-4 md:grid-cols-2">{[{ label: "Cover Image", url: product.imageURL }, { label: "Small / Cart Image", url: product.productImageUrl }].map(({ label, url }) => <div key={label} className="overflow-hidden rounded-xl border border-base-200"><div className="border-b border-base-200 bg-base-200/50 px-3 py-2 text-xs font-bold uppercase">{label}</div><ProductImage src={url} alt={`${product.name} ${label}`} /></div>)}</section>
+              <section className="grid grid-cols-1 gap-4 rounded-xl bg-base-200/40 p-4 sm:grid-cols-3"><div><p className="text-xs font-bold uppercase text-base-content/50">Base Price</p><p className="mt-1 text-xl font-bold">{formatCurrency(product.basePrice)}</p></div><div className="sm:col-span-2"><p className="text-xs font-bold uppercase text-base-content/50">Description</p><p className="mt-1 whitespace-pre-wrap text-sm">{product.description || "No description provided."}</p></div></section>
+              <section className="flex flex-col gap-2"><h3 className="font-bold">Attributes</h3>{product.attributes?.length ? <div className="flex flex-wrap gap-2">{product.attributes.map((attribute, index) => <span key={`${String(attribute)}-${index}`} className="badge badge-outline">{String(attribute)}</span>)}</div> : <p className="rounded-lg border border-dashed p-3 text-sm text-base-content/50">No attributes.</p>}</section>
+              <section className="flex flex-col gap-2"><div className="flex justify-between"><h3 className="font-bold">Variants &amp; Stock</h3>{!isLoadingVariants && !variantError && <span className="text-xs text-base-content/50">{variants.length} variant(s)</span>}</div>{isLoadingVariants ? <div className="flex justify-center rounded-xl border p-6"><span className="loading loading-spinner loading-md text-primary" /></div> : variantError ? <div className="alert alert-error text-sm"><span>{variantError}</span><button type="button" className="btn btn-sm" onClick={() => void fetchVariants()}>Retry</button></div> : variants.length === 0 ? <p className="rounded-lg border border-dashed p-3 text-sm text-base-content/50">No variants.</p> : <div className="overflow-x-auto rounded-xl border"><table className="table table-sm"><thead><tr><th>Variant</th><th>Modifier</th><th>Selling Price</th><th>Stock</th></tr></thead><tbody>{variants.map((variant) => <tr key={variant.id}><td>{variant.name}</td><td>{formatModifier(variant.priceModifier)}</td><td>{formatCurrency(product.basePrice + variant.priceModifier)}</td><td>{variant.stock}</td></tr>)}</tbody></table></div>}</section>
+              <section className="flex flex-col gap-2"><div className="flex justify-between"><h3 className="font-bold">Additional Images</h3><span className="text-xs text-base-content/50">{product.additionalImages?.length || 0} image(s)</span></div>{product.additionalImages?.length ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">{product.additionalImages.map((url, index) => <div key={`${url}-${index}`} className="overflow-hidden rounded-xl border"><ProductImage src={url} alt={`Additional image ${index + 1}`} className="aspect-square w-full" /></div>)}</div> : <p className="rounded-lg border border-dashed p-3 text-sm text-base-content/50">No additional images.</p>}</section>
+            </>
+          )}
+        </main>
 
-            {isLoadingVariants ? (
-              <div className="flex justify-center rounded-xl border border-base-200 p-6">
-                <span className="loading loading-spinner loading-md text-primary" />
-              </div>
-            ) : variantError ? (
-              <div className="alert alert-error text-sm">
-                <span>{variantError}</span>
-                <button
-                  type="button"
-                  className="btn btn-sm"
-                  onClick={() => void fetchVariants()}
-                >
-                  Retry
-                </button>
-              </div>
-            ) : variants.length === 0 ? (
-              <p className="rounded-lg border border-dashed border-base-300 p-3 text-sm text-base-content/50">
-                No variants.
-              </p>
-            ) : (
-              <div className="overflow-x-auto rounded-xl border border-base-200">
-                <table className="table table-sm">
-                  <thead>
-                    <tr>
-                      <th>Variant</th>
-                      <th>Price Modifier</th>
-                      <th>Selling Price</th>
-                      <th>Stock</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {variants.map((variant, index) => (
-                      <tr key={variant.id || `${variant.name}-${index}`}>
-                        <td className="font-semibold">{variant.name}</td>
-                        <td className="font-mono">
-                          {formatPriceModifier(variant.priceModifier)}
-                        </td>
-                        <td className="font-mono">
-                          {formatCurrency(
-                            product.basePrice + variant.priceModifier,
-                          )}
-                        </td>
-                        <td>
-                          <span
-                            className={`badge ${variant.stock > 0 ? "badge-success badge-outline" : "badge-error badge-outline"}`}
-                          >
-                            {variant.stock}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
+        {isEditing && <footer className="border-t border-base-200 bg-base-100 p-4">{formError && <div className="alert alert-error mb-3 text-sm"><span>{formError}</span></div>}<div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"><button type="button" className="btn btn-outline" disabled={isSaving} onClick={() => isDirty ? setDiscardAction("cancel-edit") : leaveEditMode()}>Cancel Edit</button><button type="submit" className="btn btn-primary" disabled={!isDirty || isSaving}>{isSaving ? <><span className="loading loading-spinner loading-sm" />Saving...</> : "Save Edits"}</button></div></footer>}
+      </form>
 
-          <section className="flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="font-bold text-base-content">Additional Images</h3>
-              <span className="text-xs text-base-content/50">
-                {additionalImages.length} image(s)
-              </span>
-            </div>
-            {additionalImages.length > 0 ? (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {additionalImages.map((image, index) => (
-                  <div
-                    key={`${image}-${index}`}
-                    className="overflow-hidden rounded-xl border border-base-200"
-                  >
-                    <ProductImage
-                      src={image}
-                      alt={`${product.name} additional image ${index + 1}`}
-                      className="aspect-square w-full"
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="rounded-lg border border-dashed border-base-300 p-3 text-sm text-base-content/50">
-                No additional images.
-              </p>
-            )}
-          </section>
-        </div>
-      </div>
+      {discardAction && <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/60 p-4"><div className="flex w-full max-w-sm flex-col gap-4 rounded-2xl border border-base-200 bg-base-100 p-6 shadow-2xl" role="alertdialog" aria-modal="true" aria-labelledby="discard-title"><h3 id="discard-title" className="text-lg font-bold text-error">⚠️ Discard Unsaved Changes?</h3><p className="text-sm text-base-content/70">You have unsaved product edits. Are you sure you want to discard them?</p><div className="flex justify-end gap-2"><button type="button" className="btn btn-ghost btn-sm" onClick={() => setDiscardAction(null)}>Keep Editing</button><button type="button" className="btn btn-error btn-sm text-white" onClick={confirmDiscard}>Discard Changes</button></div></div></div>}
     </div>
   );
 };
